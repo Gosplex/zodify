@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "519653030550",
+    "project_id": "zodify-6ff17",
+    "storage_bucket": "zodify-6ff17.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:519653030550:android:7b3ec51b689075c756a0b7",
+        "android_client_info": {
+          "package_name": "com.zodify.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyArrH7DB6tnlBgwwcJGfoojxaVfXj4Rkas"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
