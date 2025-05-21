@@ -13,6 +13,7 @@ import '../../common/utils/images.dart';
 import '../../main.dart';
 import '../../services/notification_service.dart';
 import '../model/user_model.dart';
+import 'astrologer_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -177,6 +178,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     GestureDetector(
                       onTap: () {
+                        Navigator.of(context)
+                            .push(MaterialPageRoute(builder: (context) =>AstrologerListScreen() ,));
+                        // AstrologerListScreen
                         // Handle "View All" tap
                       },
                       child: Text(
@@ -368,7 +372,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             Align(
                               alignment: Alignment.centerRight,
                               child: GestureDetector(
-                                onTap: () {}, // Handle view all
+                                onTap: () {
+                                  Navigator.of(context)
+                                      .push(MaterialPageRoute(builder: (context) =>AstrologerListScreen() ,));
+                                }, // Handle view all
                                 child: Text(
                                   'View All',
                                   style: AppTextStyles.bodyMedium(

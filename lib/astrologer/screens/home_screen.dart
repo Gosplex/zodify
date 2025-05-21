@@ -21,7 +21,9 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final NotificationService _notificationService = NotificationService();
   final UserService _userService = UserService();
-
+  bool isCallEnabled = false;
+  bool isChatEnabled = false;
+  bool isVideoEnabled = false;
 
   Future<void> initializeNotifications() async {
     try {
@@ -189,18 +191,71 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, kToolbarHeight + 5, 16, 16),
-          child: GridView.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 1.2,
+          child: SingleChildScrollView(
+            child: Column(
+              children:[
+                SizedBox(
+                  height:32
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white38,
+                    border: Border.all(color: Colors.white),
+                    borderRadius: BorderRadius.circular(12)
+                  ),
+                  child: Column(
+                    children: [
+                      SwitchListTile(
+                        title: Text('Enable Call',style: TextStyle(color: Colors.white),),
+                        value: isCallEnabled,
+                        onChanged: (bool value) {
+                          setState(() {
+                            isCallEnabled = value;
+                          });
+                        },
+                      ),
+                      SwitchListTile(
+                        title: Text('Enable Chat',style: TextStyle(color: Colors.white),),
+                        value: isChatEnabled,
+                        onChanged: (bool value) {
+                          setState(() {
+                            isChatEnabled = value;
+                          });
+                        },
+                      ),
+                      SwitchListTile(
+                        title: Text('Enable Video',style: TextStyle(color: Colors.white),),
+                        value: isVideoEnabled,
+                        onChanged: (bool value) {
+                          setState(() {
+                            isVideoEnabled = value;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  height: 16,
+                ),
+                GridView.builder(
+                  shrinkWrap: true,
+                  padding: EdgeInsets.zero,
+                  physics: NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 1.2,
+                  ),
+                  itemCount: dashboardItems.length,
+                  itemBuilder: (context, index) {
+                    return _buildFeatureCard(dashboardItems[index]);
+                  },
+                )
+              ]
             ),
-            itemCount: dashboardItems.length,
-            itemBuilder: (context, index) {
-              return _buildFeatureCard(dashboardItems[index]);
-            },
-          ),
+          )
         ),
       ),
     );
