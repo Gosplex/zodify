@@ -21,6 +21,7 @@ dependencies:
   shimmer: ^3.0.0
   crypto: ^3.0.6
   pinput: ^5.0.1
+  url_launcher:
 
 # VIDEO PLAYER
   video_player: ^2.9.5
@@ -89,7 +90,7 @@ flutter:
      - assets/animations/call_denied.json
      - assets/audio/phone_call_beep.mp3
      - assets/audio/notification.wav
-     - assets/zodify-6ff17-firebase-adminsdk-fbsvc-4c630081b1.json
+     - assets/zodify-6ff17-firebase-adminsdk-fbsvc-5ec7753e9b.json
 #     - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
