@@ -527,6 +527,7 @@ class _AstrologerProfileScreenState extends State<AstrologerProfileScreen>
                       ),
                     ),
                     // Action Buttons (Chat, Call, Video)
+                    if(astrologer.astrologerProfile!.availability!=null)
                     Visibility(
                       visible: widget.isUserInteraction,
                       child: Positioned(
@@ -537,6 +538,7 @@ class _AstrologerProfileScreenState extends State<AstrologerProfileScreen>
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             // Chat Button
+                            if(astrologer.astrologerProfile!.availability!.available_for_chat)
                             GestureDetector(
                               onTap: () {
                                 Navigator.of(context).push(MaterialPageRoute(
@@ -592,6 +594,7 @@ class _AstrologerProfileScreenState extends State<AstrologerProfileScreen>
                             ),
                             const SizedBox(width: 12),
                             // Call Button
+                            if(astrologer.astrologerProfile!.availability!.available_for_call)
                             GestureDetector(
                               onTap: () {
                                 // Add call logic here
@@ -642,6 +645,7 @@ class _AstrologerProfileScreenState extends State<AstrologerProfileScreen>
                             ),
                             const SizedBox(width: 12),
                             // Video Button
+                            if(astrologer.astrologerProfile!.availability!.available_for_video)
                             GestureDetector(
                               onTap: () {
                                 // Add video logic here

@@ -206,9 +206,11 @@ class AstrologerProfile {
   final AstrologerStatus? status;
   final DateTime? approvalDate;
   final String? rejectionReason;
+  final Availability? availability;
 
   AstrologerProfile({
     this.name,
+    this.availability,
     this.email,
     this.gender,
     this.birthDate,
@@ -232,6 +234,7 @@ class AstrologerProfile {
     return AstrologerProfile(
       name: json['name'],
       email: json['email'],
+      availability: json['availability']!=null?Availability.fromJson(json['availability']):null,
       gender: json['gender'],
       birthDate: json['birthDate'],
       languages: (json['languages'] as List?)?.map((e) => e.toString()).toList(),
@@ -262,6 +265,7 @@ class AstrologerProfile {
     return {
       'name': name,
       'email': email,
+      'availability': availability,
       'gender': gender,
       'birthDate': birthDate,
       'languages': languages,
@@ -321,5 +325,29 @@ class AstrologerProfile {
       approvalDate: approvalDate ?? this.approvalDate,
       rejectionReason: rejectionReason ?? this.rejectionReason,
     );
+  }
+}
+
+class Availability{
+  bool available_for_call;
+  bool available_for_chat;
+  bool available_for_video;
+
+  Availability({this.available_for_call=false,this.available_for_chat=false,this.available_for_video=false});
+
+  factory Availability.fromJson(var data){
+    return Availability(
+      available_for_call: data['available_for_call'],
+      available_for_chat: data['available_for_chat'],
+      available_for_video: data['available_for_video'],
+    );
+  }
+
+  Map toJson(){
+    return {
+      "available_for_call":available_for_call,
+      "available_for_chat":available_for_chat,
+      "available_for_video":available_for_video,
+    };
   }
 }

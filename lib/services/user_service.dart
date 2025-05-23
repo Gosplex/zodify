@@ -31,6 +31,29 @@ class UserService {
     }
   }
 
+  /// Updates user online status
+  Future<void> updateAstrologerAvailability(String userId, {required Map<String, bool> user_availability}) async {
+    try {
+      print("updateAstrologerAvailability Update Called:::$userId");
+      print("updateAstrologerAvailability Update Values:::$user_availability");
+      await _firestore.collection(usersCollection).doc(userId).update({
+        'astrologerProfile.availability': user_availability,
+      });
+    } catch (e) {
+      throw Exception('Failed to update user status: $e');
+    }
+  }
+
+  Future<dynamic> getAstrologerAvailability(String userId,) async {
+    try {
+      print("getAstrologerAvailability Called:::$userId");
+      DocumentSnapshot<Map<String, dynamic>> b=await _firestore.collection(usersCollection).doc(userId).get();
+      return b.get('astrologerProfile')['availability'];
+    } catch (e) {
+      throw Exception('Failed to update user status: $e');
+    }
+  }
+
 
   Future<void> updateAstrologerStatus(String userId, bool isOnline, String lastDashboardLoggedIn) async {
     try {

@@ -39,6 +39,14 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     initializeNotifications();
     _userService.updateUserStatus(userStore.user!.id!, true, "Astrologer");
+    _userService.getAstrologerAvailability(userStore.user!.id!,).then((value1) {
+      isCallEnabled=value1['available_for_call'];
+      isVideoEnabled=value1['available_for_video'];
+      isChatEnabled=value1['available_for_chat'];
+      setState(() {
+
+      });
+    },);
     super.initState();
   }
 
@@ -204,6 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: BorderRadius.circular(12)
                   ),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       SwitchListTile(
                         title: Text('Enable Call',style: TextStyle(color: Colors.white),),
@@ -232,6 +241,16 @@ class _HomeScreenState extends State<HomeScreen> {
                           });
                         },
                       ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16,vertical: 8),
+                        child: ElevatedButton(onPressed: (){
+                          _userService.updateAstrologerAvailability(userStore.user!.id!,user_availability:{
+                            "available_for_call":isCallEnabled,
+                            "available_for_video":isVideoEnabled,
+                            "available_for_chat":isChatEnabled,
+                          });
+                        }, child: Text("Save")),
+                      )
                     ],
                   ),
                 ),

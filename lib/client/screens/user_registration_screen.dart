@@ -24,7 +24,7 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
   final PageController _pageController = PageController();
   int _currentStep = 1;
   final int _totalSteps = 7;
-
+  var _searchCityController=TextEditingController();
   // Form data
   String _name = '';
   String? _gender;
@@ -33,6 +33,8 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
   TimeOfDay? _birthTime;
   String? _birthPlace;
   final List<String> _selectedLanguages = [];
+
+  var cityList=[];
 
   Future<void> createUser() async {
     try {
@@ -389,37 +391,106 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
                 // Step 6: Birth place
                 _buildStep(
                   question: 'Where were you born?',
-                  child: Material(
-                    elevation: 0,
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    child: SizedBox(
-                      width: double.infinity, // This will constrain it to the parent's width
-                      child: DropdownButtonFormField<String>(
-                        value: _birthPlace,
-                        elevation: 0,
-                        dropdownColor: Colors.white,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
+                  child:
+                  Column(
+                    children: [
+                      TextField(
+                        controller: _searchCityController,
+                          cursorColor: AppColors.primaryLight,
+                          // style: TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                          hintText: 'Search City',
+                          // hintStyle: TextStyle(color: Colors.white54),
+                          enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey,width: 1)
                           ),
+                          suffixIcon: IconButton(onPressed: () async{
+                            if(_searchCityController.text.isNotEmpty){
+                              _birthPlace=null;
+                              cityList=await CommonUtilities.fetchCity(_searchCityController.text);
+                              setState(() {
+
+                              });
+                            }else{
+                              cityList.clear();
+                              setState(() {
+
+                              });
+                            }
+                          }, icon: Icon(Icons.search)),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(color: AppColors.primary),
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey,width: 1)
                           ),
-                        ),
-                        items: AppConstants.indianStates.map((state) {
-                          return DropdownMenuItem(
-                            value: state,
-                            child: Text(state, style: AppTextStyles.bodyMedium()),
-                          );
-                        }).toList(),
-                        onChanged: (value) => setState(() => _birthPlace = value),
-                        hint: Text('Select your state',
-                            style: AppTextStyles.bodyMedium()),
-                      ),
-                    ),
-                  ),
+                          border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey,width: 1)
+                          ),
+                          ),
+                          ),
+                      if(cityList.isNotEmpty && _birthPlace==null)
+
+                        Expanded(
+                          child: SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                for(int i=0;i<cityList.length;i++)
+                                  InkWell(
+                                      onTap: (){
+                                        setState(() {
+                                          _birthPlace=cityList[i]['description'];
+                                          cityList.clear();
+                                          _searchCityController.text=_birthPlace??"";
+                                        });
+                                      },
+                                      child: Container(
+                                        margin: EdgeInsets.symmetric(vertical: 4),
+                                        padding: EdgeInsets.symmetric(horizontal: 8,vertical: 4),
+                                          decoration: BoxDecoration(
+                                            border: Border.all(color: Colors.grey),
+                                            borderRadius: BorderRadius.circular(12)
+                                          ),
+                                          child: Text(cityList[i]['description'])))
+                              ],
+                            ),
+                          ),
+                        )
+                    ],
+                  )
+                      // :
+                  // Material(
+                  //   elevation: 0,
+                  //   color: Colors.white,
+                  //   borderRadius: BorderRadius.circular(10),
+                  //   child: SizedBox(
+                  //     width: double.infinity, // This will constrain it to the parent's width
+                  //     child: DropdownButtonFormField<String>(
+                  //       value: _birthPlace,
+                  //       elevation: 0,
+                  //       dropdownColor: Colors.white,
+                  //       decoration: InputDecoration(
+                  //         border: OutlineInputBorder(
+                  //           borderRadius: BorderRadius.circular(10),
+                  //         ),
+                  //         focusedBorder: OutlineInputBorder(
+                  //           borderRadius: BorderRadius.circular(10),
+                  //           borderSide: BorderSide(color: AppColors.primary),
+                  //         ),
+                  //       ),
+                  //       items: AppConstants.indianStates.map((state) {
+                  //         return DropdownMenuItem(
+                  //           value: state,
+                  //           child: Text(state, style: AppTextStyles.bodyMedium()),
+                  //         );
+                  //       }).toList(),
+                  //       onChanged: (value) => setState(() => _birthPlace = value),
+                  //       hint: Text('Select your state',
+                  //           style: AppTextStyles.bodyMedium()),
+                  //     ),
+                  //   ),
+                  // ),
                 ),
 
                 // Step 7: Languages

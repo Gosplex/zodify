@@ -4,6 +4,7 @@ import 'package:astrology_app/common/utils/constants.dart';
 import 'package:astrology_app/common/utils/images.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import '../../astrologer/screens/astrologer_profile_screen.dart';
 import '../model/user_model.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -66,7 +67,9 @@ class _AstrologerListScreenState extends State<AstrologerListScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        leading: IconButton(
+        leading: true?BackButton(color: Colors.white,onPressed: (){
+          Navigator.pop(context);
+        },):IconButton(
           icon: const Icon(Icons.settings_outlined, color: Colors.white),
           onPressed: () {}, // Add settings functionality
         ),
@@ -168,144 +171,157 @@ class AstrologerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: Colors.grey.withOpacity(0.4),
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              // crossAxisAlignment: CrossAxisAlignment.,
-              children: [
-                // Profile Image
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    astro.astrologerProfile!.imageUrl??'https://img.freepik.com/free-psd/spectacular-flight-vivid-green-bird_191095-78393.jpg',
-                    width: 70,
-                    height: 70,
-                    fit: BoxFit.cover,
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) {
+            return AstrologerProfileScreen(astrologerId: astro.id!, isUserInteraction: true);
+          },
+        ));
+      },
+      child: Card(
+        color: Colors.grey.withOpacity(0.4),
+        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                // crossAxisAlignment: CrossAxisAlignment.,
+                children: [
+                  // Profile Image
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      astro.astrologerProfile!.imageUrl??'https://img.freepik.com/free-psd/spectacular-flight-vivid-green-bird_191095-78393.jpg',
+                      width: 70,
+                      height: 70,
+                      fit: BoxFit.cover,
+                    ),
                   ),
-                ),
-                SizedBox(width: 12),
-                // Info
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        mainAxisSize: MainAxisSize.max,
-                        children: [
-                          Row(
-                            children: [
-                              Text(astro.name.toString(),
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16)),
-                              if(astro.astrologerProfile!.status==AstrologerStatus.approved)
-                              SizedBox(width: 6),
-                              if(astro.astrologerProfile!.status==AstrologerStatus.approved)
-                              Icon(Icons.verified, color: Colors.green, size: 16),
-                            ],
-                          ),
-                          Text(
-                            astro.isOnline==true? "Online" : "Offline",
-                            style: TextStyle(
-                                color: Colors.greenAccent, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(Icons.menu_book_sharp,color:Colors.grey),
-                          Expanded(
-                            child: Text(
-                              astro.astrologerProfile!.skills!.join(','),
+                  SizedBox(width: 12),
+                  // Info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            Row(
+                              children: [
+                                Text(astro.name.toString(),
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16)),
+                                if(astro.astrologerProfile!.status==AstrologerStatus.approved)
+                                SizedBox(width: 6),
+                                if(astro.astrologerProfile!.status==AstrologerStatus.approved)
+                                Icon(Icons.verified, color: Colors.green, size: 16),
+                              ],
+                            ),
+                            Text(
+                              astro.isOnline==true? "Online" : "Offline",
+                              style: TextStyle(
+                                  color: Colors.greenAccent, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(Icons.menu_book_sharp,color:Colors.grey),
+                            Expanded(
+                              child: Text(
+                                astro.astrologerProfile!.skills!.join(','),
+                                style: TextStyle(color: Colors.grey, fontSize: 12),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Icon(Icons.language,color:Colors.grey),
+                            Expanded(
+                              child: Text(
+                                '${astro.languages!.join(',')}',
+                                style: TextStyle(color: Colors.grey, fontSize: 12),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Icon(Icons.timelapse_sharp,color:Colors.grey),
+                            Text(
+                              astro.astrologerProfile!.yearsOfExperience.toString(),
                               style: TextStyle(color: Colors.grey, fontSize: 12),
                             ),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Icon(Icons.language,color:Colors.grey),
-                          Expanded(
-                            child: Text(
-                              '${astro.languages!.join(',')}',
-                              style: TextStyle(color: Colors.grey, fontSize: 12),
+                          ],
+                        ),
+                        SizedBox(height: 4),
+                        Row(
+                          mainAxisSize: MainAxisSize.max,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '₹ 10',
+                              style: TextStyle(color: Colors.white),
                             ),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Icon(Icons.timelapse_sharp,color:Colors.grey),
-                          Text(
-                            astro.astrologerProfile!.yearsOfExperience.toString(),
-                            style: TextStyle(color: Colors.grey, fontSize: 12),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 4),
-                      Row(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            '₹ 10',
-                            style: TextStyle(color: Colors.white),
-                          ),
 
-                          Text(
-                            'Wait = 3m',
-                            style: TextStyle(color: Colors.redAccent, fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    ],
+                            Text(
+                              'Wait = 3m',
+                              style: TextStyle(color: Colors.redAccent, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                // // Status
-                // Padding(
-                //   padding: const EdgeInsets.only(left: 4.0),
-                //   child: Column(
-                //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                //     mainAxisSize: MainAxisSize.max,
-                //     crossAxisAlignment: CrossAxisAlignment.end,
-                //     children: [
-                //       Text(
-                //         astro['isOnline'] ? "Online" : "Offline",
-                //         style: TextStyle(
-                //             color: Colors.greenAccent, fontWeight: FontWeight.bold),
-                //       ),
-                //       SizedBox(height: 4),
-                //       Text(
-                //         'Wait = ${astro['waitTime']}',
-                //         style: TextStyle(color: Colors.redAccent, fontSize: 12),
-                //       ),
-                //     ],
-                //   ),
-                // )
-              ],
-            ),
-            Divider(color: Colors.grey[700], height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildActionButton(Icons.chat, "Chat",),
-                _buildActionButton(Icons.call, "Call",onClick:(){
-                  launchUrl(Uri.parse('tel:${astro.phoneNumber}'));
-                }),
-                _buildActionButton(Icons.video_call, "Video Call", ),
-              ],
-            )
-          ],
+                  // // Status
+                  // Padding(
+                  //   padding: const EdgeInsets.only(left: 4.0),
+                  //   child: Column(
+                  //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //     mainAxisSize: MainAxisSize.max,
+                  //     crossAxisAlignment: CrossAxisAlignment.end,
+                  //     children: [
+                  //       Text(
+                  //         astro['isOnline'] ? "Online" : "Offline",
+                  //         style: TextStyle(
+                  //             color: Colors.greenAccent, fontWeight: FontWeight.bold),
+                  //       ),
+                  //       SizedBox(height: 4),
+                  //       Text(
+                  //         'Wait = ${astro['waitTime']}',
+                  //         style: TextStyle(color: Colors.redAccent, fontSize: 12),
+                  //       ),
+                  //     ],
+                  //   ),
+                  // )
+                ],
+              ),
+              Divider(color: Colors.grey[700], height: 20),
+              if(astro.astrologerProfile!.availability!=null)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  if(astro.astrologerProfile!.availability!.available_for_chat)
+                  _buildActionButton(Icons.chat, "Chat",),
+                  if(astro.astrologerProfile!.availability!.available_for_call)
+                  _buildActionButton(Icons.call, "Call",onClick:(){
+                    launchUrl(Uri.parse('tel:${astro.phoneNumber}'));
+                  }),
+                  if(astro.astrologerProfile!.availability!.available_for_video)
+                  _buildActionButton(Icons.video_call, "Video Call", ),
+                ],
+              )
+            ],
+          ),
         ),
       ),
     );

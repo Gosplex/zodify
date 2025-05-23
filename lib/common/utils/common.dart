@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
@@ -7,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import '../../common/utils/colors.dart'; // Import for AppColors
 import '../../common/utils/app_text_styles.dart'; // Import for AppTextStyles
+import 'package:http/http.dart' as http;
 
 class CommonUtilities {
   static void showError(BuildContext context, String message) {
@@ -19,6 +21,18 @@ class CommonUtilities {
         behavior: SnackBarBehavior.floating,
       ),
     );
+  }
+
+  static Future<dynamic> fetchCity(String searchString) async {
+    final url =
+        'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$searchString&types=(cities)&key=AIzaSyA2ePDSb0Y1wStqWbLA0UwvFGZMXb7KuOY';
+    final response = await http.get(Uri.parse(url));
+    final data = jsonDecode(response.body);
+    if (data['status'] == 'OK') {
+      return data['predictions'];
+    } else {
+      return [];
+    }
   }
 
   static void showSuccess(BuildContext context, String message) {
