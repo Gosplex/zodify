@@ -9,6 +9,9 @@ import '../model/user_model.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AstrologerListScreen extends StatefulWidget {
+  String? route;
+  AstrologerListScreen({super.key, this.route});
+
   @override
   State<AstrologerListScreen> createState() => _AstrologerListScreenState();
 }
@@ -22,57 +25,134 @@ class _AstrologerListScreenState extends State<AstrologerListScreen> {
   @override
   void initState() {
     super.initState();
+    print("LISTCalled:::${widget.route}");
     _fetchAstrologers();
   }
 
-  // final List<Map<String, dynamic>> astrologers = [
-   _fetchAstrologers({String? skill}) async {
 
+  @override
+  void dispose() {
+    super.dispose();
+    _astrologersFuture.clear();
+  } // final List<Map<String, dynamic>> astrologers = [
+  //  _fetchAstrologers({String? skill}) async {
+  //    QuerySnapshot<Map<String, dynamic>> querySnapshot;
+  //   try {
+  //     if(skill!=null){
+  //       querySnapshot = await _firestore
+  //           .collection('users')
+  //           .where('astrologerProfile', isNotEqualTo: null)
+  //           .where('astrologerProfile.status', isEqualTo: 'approved')
+  //           .where('astrologerProfile.isOnline', isEqualTo: true)
+  //           .where('astrologerProfile.skills', arrayContains: '$skill')
+  //           .get();
+  //     }else{
+  //       querySnapshot = await _firestore
+  //           .collection('users')
+  //           .where('astrologerProfile', isNotEqualTo: null)
+  //           .where('astrologerProfile.status', isEqualTo: 'approved')
+  //           .where('astrologerProfile.isOnline', isEqualTo: true)
+  //           .get();
+  //     }
+  //     print("CheckCount::::${querySnapshot.docs.length}");
+  //     var tempList= querySnapshot.docs
+  //         .map((doc) => UserModel.fromJson(doc.data()))
+  //         .toList();
+  //
+  //     if(widget.route=="chat"){
+  //       print("CASE1");
+  //       _astrologersFuture = tempList.where((element) =>
+  //       element.astrologerProfile?.availability?.available_for_chat == true
+  //       ).toList();
+  //       setState(() {
+  //
+  //       });
+  //     }else if(widget.route=="call"){
+  //       print("CASE2");
+  //       tempList.forEach((element) {
+  //         if(element.astrologerProfile!.availability!=null && element.astrologerProfile!.availability!.available_for_call==true){
+  //           _astrologersFuture.add(element);
+  //         }
+  //       },);
+  //     }else if(widget.route=="video"){
+  //       print("CASE3");
+  //       tempList.forEach((element) {
+  //         if(element.astrologerProfile!.availability!=null && element.astrologerProfile!.availability!.available_for_video==true){
+  //           _astrologersFuture.add(element);
+  //         }
+  //       },);
+  //     }else{
+  //       _astrologersFuture=tempList;
+  //     }
+  //     setState(() {
+  //
+  //     });
+  //   } catch (e,s) {
+  //     debugPrint('Error fetching astrologers: $e:::$s');
+  //     return [];
+  //   }
+  // }
+
+  _fetchAstrologers({String? skill}) async {
     try {
-      if(skill!=null){
-        final querySnapshot = await _firestore
+      QuerySnapshot<Map<String, dynamic>> querySnapshot;
+
+      if (skill != null) {
+        querySnapshot = await _firestore
             .collection('users')
             .where('astrologerProfile', isNotEqualTo: null)
             .where('astrologerProfile.status', isEqualTo: 'approved')
-            .where('astrologerProfile.isOnline', isEqualTo: true)
-            .where('astrologerProfile.skills', arrayContains: '$skill')
+            .where('astrologerProfile.skills', arrayContains: skill)
             .get();
-
-        _astrologersFuture= querySnapshot.docs
-            .map((doc) => UserModel.fromJson(doc.data()))
-            .toList();
-      }else{
-        final querySnapshot = await _firestore
+      } else {
+        querySnapshot = await _firestore
             .collection('users')
             .where('astrologerProfile', isNotEqualTo: null)
             .where('astrologerProfile.status', isEqualTo: 'approved')
-            .where('astrologerProfile.isOnline', isEqualTo: true)
             .get();
-
-        _astrologersFuture= querySnapshot.docs
-            .map((doc) => UserModel.fromJson(doc.data()))
-            .toList();
       }
-      setState(() {
+      print("CheckCount::::${querySnapshot.docs.length}");
 
-      });
-    } catch (e) {
-      debugPrint('Error fetching astrologers: $e');
+      final tempList = querySnapshot.docs
+          .map((doc) => UserModel.fromJson(doc.data()))
+          .toList();
+
+      if (widget.route == "chat") {
+        print("CASE1");
+        _astrologersFuture = tempList.where((element) =>
+        element.astrologerProfile?.availability?.available_for_chat == true
+        ).toList();
+
+      } else if (widget.route == "call") {
+        print("CASE2");
+        _astrologersFuture = tempList.where((element) =>
+        element.astrologerProfile?.availability?.available_for_call == true
+        ).toList();
+      } else if (widget.route == "video") {
+        print("CASE3");
+        _astrologersFuture = tempList.where((element) =>
+        element.astrologerProfile?.availability?.available_for_video == true
+        ).toList();
+      } else {
+        _astrologersFuture = tempList;
+      }
+
+      setState(() {});
+    } catch (e, s) {
+      debugPrint('Error fetching astrologers: $e:::$s');
       return [];
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        leading: true?BackButton(color: Colors.white,onPressed: (){
+        leading: widget.route==null?BackButton(color: Colors.white,onPressed: (){
           Navigator.pop(context);
-        },):IconButton(
-          icon: const Icon(Icons.settings_outlined, color: Colors.white),
-          onPressed: () {}, // Add settings functionality
-        ),
+        },):SizedBox(),
         title: Text(
           'Astrologer List', // Your app name
           style: AppTextStyles.heading2(
@@ -237,7 +317,7 @@ class AstrologerCard extends StatelessWidget {
                             Icon(Icons.menu_book_sharp,color:Colors.grey),
                             Expanded(
                               child: Text(
-                                astro.astrologerProfile!.skills!.join(','),
+                                astro.astrologerProfile!.skills!.join(','),maxLines: 2,overflow: TextOverflow.ellipsis,
                                 style: TextStyle(color: Colors.grey, fontSize: 12),
                               ),
                             ),

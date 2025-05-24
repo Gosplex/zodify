@@ -6,6 +6,7 @@ import '../../common/screens/chat_list_screen.dart';
 import '../../common/screens/live_streaming_screen.dart';
 import '../../common/utils/colors.dart';
 import '../../common/utils/app_text_styles.dart';
+import 'astrologer_list_screen.dart';
 import 'home_screen.dart';
 
 class UserDashboardScreen extends StatefulWidget {
@@ -18,12 +19,27 @@ class UserDashboardScreen extends StatefulWidget {
 class _UserDashboardScreenState extends State<UserDashboardScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const ChatListScreen(), // Placeholder for Chat screen
-    const LiveStreamingScreen(), // Placeholder for Live screen
-    const CallHistoryScreen(), // Placeholder for Calls screen
-  ];
+  // final List<Widget> _screens = [
+  //   const HomeScreen(),
+  //   AstrologerListScreen(route:"chat"),
+  //   AstrologerListScreen(route:"call"),
+  //   AstrologerListScreen(route:"video"),
+  // ];
+
+  Widget getCurrentScreen() {
+    switch (_currentIndex) {
+      case 0:
+        return const HomeScreen();
+      case 1:
+        return AstrologerListScreen(key: ValueKey('chat'), route: "chat");
+      case 2:
+        return AstrologerListScreen(key: ValueKey('call'), route: "call");
+      case 3:
+        return AstrologerListScreen(key: ValueKey('video'), route: "video");
+      default:
+        return const HomeScreen();
+    }
+  }
 
   @override
   void initState() {
@@ -36,7 +52,8 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       extendBody: true,
-      body: _screens[_currentIndex],
+      body: getCurrentScreen(),
+      // body: _screens[_currentIndex],
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: AppColors.primaryDark,
@@ -108,7 +125,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
               icon: Container(
                 padding: const EdgeInsets.all(8),
                 child: Icon(
-                  Icons.live_tv_rounded,
+                  CupertinoIcons.phone_fill,
                   size: 24,
                 ),
               ),
@@ -119,18 +136,18 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
-                  Icons.live_tv_rounded,
+                  CupertinoIcons.phone_fill,
                   size: 24,
                   color: AppColors.textWhite,
                 ),
               ),
-              label: 'Live',
+              label: 'Call',
             ),
             BottomNavigationBarItem(
               icon: Container(
                 padding: const EdgeInsets.all(8),
                 child: Icon(
-                  CupertinoIcons.phone_fill,
+                  CupertinoIcons.videocam_circle_fill,
                   size: 24,
                 ),
               ),
@@ -141,12 +158,12 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
-                  CupertinoIcons.phone_fill,
+                  CupertinoIcons.videocam_circle_fill,
                   size: 24,
                   color: AppColors.textWhite,
                 ),
               ),
-              label: 'Calls',
+              label: 'Video Call',
             ),
           ],
         ),

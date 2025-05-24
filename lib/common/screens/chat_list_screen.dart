@@ -12,6 +12,7 @@ import 'package:astrology_app/services/message_service.dart';
 import 'package:astrology_app/services/user_service.dart';
 
 import '../../client/model/user_model.dart';
+import '../../client/screens/astrologer_list_screen.dart';
 
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
@@ -33,7 +34,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
     final messageService = MessageService();
     final userService = UserService();
     final String currentUserId = userStore.user!.id!;
-
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
