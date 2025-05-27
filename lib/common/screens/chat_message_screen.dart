@@ -51,6 +51,7 @@ class _ChatMessageScreenState extends State<ChatMessageScreen> {
 
   @override
   void initState() {
+    print(widget.chatId.toString()+":::CHeck Chat ID");
     super.initState();
     _initRecorder();
   }
@@ -228,6 +229,13 @@ class _ChatMessageScreenState extends State<ChatMessageScreen> {
               size: 20,
             ),
             onPressed: () {
+              print("CheckRoomID::${widget.chatId}");
+              print("receiverId::${widget.receiverId}");
+              // CheckRoomID::higCpUVGbFUdSTB4PyW6WLoGskL2_higCpUVGbFUdSTB4PyW6WLoGskL2
+              // receiverId::higCpUVGbFUdSTB4PyW6WLoGskL2
+
+              // CheckRoomID::higCpUVGbFUdSTB4PyW6WLoGskL2_qYYiTqiaG6Q84NkGblucV0GtJZx2
+              // receiverId::higCpUVGbFUdSTB4PyW6WLoGskL2
               Navigator.push(
                 context,
                 MaterialPageRoute(

@@ -46,9 +46,13 @@ class _ChatIntakeFormScreenState extends State<ChatIntakeFormScreen> {
   void initState() {
     super.initState();
     _firstNameController.text = userStore.user!.name!.split(' ')[0];
-    _lastNameController.text = userStore.user!.name!.split(' ')[1];
+    try{
+      _lastNameController.text = userStore.user!.name!.split(' ')[1];
+    }catch(e){
+
+    }
     _dobController.text = DateFormat('MMMM d, y').format(DateTime.parse(userStore.user!.birthDate!));
-    _tobController.text = userStore.user!.birthTime!;
+    _tobController.text = userStore.user!.birthTime??'';
     _knowsBirthTime = userStore.user!.birthTime != null ? true : false;
     _selectedGender = userStore.user!.gender;
     _selectedBirthPlace = userStore.user!.birthPlace;

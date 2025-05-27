@@ -5,6 +5,11 @@ import 'package:astrology_app/common/utils/images.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../../astrologer/screens/astrologer_profile_screen.dart';
+import '../../common/screens/calling_screen.dart';
+import '../../common/screens/chat_message_screen.dart';
+import '../../common/screens/video_call_screen.dart';
+import '../../main.dart';
+import '../../services/message_service.dart';
 import '../model/user_model.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -391,13 +396,48 @@ class AstrologerCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   if(astro.astrologerProfile!.availability!.available_for_chat)
-                  _buildActionButton(Icons.chat, "Chat",),
+                  _buildActionButton(Icons.chat, "Chat",onClick: (){
+                    MessageService messageService = MessageService();
+                    String chatId=messageService.generateChatId(userStore.user!.id!, astro.id??'');
+                    Navigator.of(context)
+                        .push(MaterialPageRoute(
+                      builder: (context) {
+                        return ChatMessageScreen(
+                            chatId: chatId,  receiverId: astro.id??'',);
+                      },
+                    ));
+                  }),
                   if(astro.astrologerProfile!.availability!.available_for_call)
                   _buildActionButton(Icons.call, "Call",onClick:(){
-                    launchUrl(Uri.parse('tel:${astro.phoneNumber}'));
+                    MessageService messageService = MessageService();
+                    String chatId=messageService.generateChatId(userStore.user!.id!, astro.id??'');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CallingScreen(
+                          receiverId: astro.id??'',
+                          receiverImageUrl: astro.astrologerProfile?.imageUrl??'',
+                          isVideoCall: false,
+                          channelName: 'call_${chatId}',
+                        ),
+                      ),
+                    );
                   }),
                   if(astro.astrologerProfile!.availability!.available_for_video)
-                  _buildActionButton(Icons.video_call, "Video Call", ),
+                  _buildActionButton(Icons.video_call, "Video Call", onClick: (){
+                    MessageService messageService = MessageService();
+                    String chatId=messageService.generateChatId(userStore.user!.id!, astro.id??'');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => VideoCallingScreen(
+                          receiverId: astro.id??'',
+                          receiverImageUrl: astro.astrologerProfile?.imageUrl??'',
+                          channelName: 'call_${chatId}',
+                        ),
+                      ),
+                    );
+                  }),
                 ],
               )
             ],

@@ -8,9 +8,13 @@ import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../client/model/user_model.dart';
 import '../../client/screens/chat_intake_screen.dart';
+import '../../common/screens/calling_screen.dart';
+import '../../common/screens/chat_message_screen.dart';
+import '../../common/screens/video_call_screen.dart';
 import '../../common/utils/app_text_styles.dart';
 import '../../common/utils/colors.dart';
 import '../../common/utils/images.dart';
+import '../../main.dart';
 import '../../services/message_service.dart';
 
 class AstrologerProfileScreen extends StatefulWidget {
@@ -541,12 +545,21 @@ class _AstrologerProfileScreenState extends State<AstrologerProfileScreen>
                             if(astrologer.astrologerProfile!.availability!.available_for_chat)
                             GestureDetector(
                               onTap: () {
-                                Navigator.of(context).push(MaterialPageRoute(
+                                MessageService messageService = MessageService();
+                                String chatId=messageService.generateChatId(userStore.user!.id!, astrologer.id??'');
+                                Navigator.of(context)
+                                    .push(MaterialPageRoute(
                                   builder: (context) {
-                                    return ChatIntakeFormScreen(
-                                        astrologerDetails: astrologer);
+                                    return ChatMessageScreen(
+                                      chatId: chatId,  receiverId: astrologer.id??'',);
                                   },
                                 ));
+                                // Navigator.of(context).push(MaterialPageRoute(
+                                //   builder: (context) {
+                                //     return ChatIntakeFormScreen(
+                                //         astrologerDetails: astrologer);
+                                //   },
+                                // ));
                               },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
@@ -598,6 +611,19 @@ class _AstrologerProfileScreenState extends State<AstrologerProfileScreen>
                             GestureDetector(
                               onTap: () {
                                 // Add call logic here
+                                MessageService messageService = MessageService();
+                                String chatId=messageService.generateChatId(userStore.user!.id!, astrologer.id??'');
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => CallingScreen(
+                                      receiverId: astrologer.id??'',
+                                      receiverImageUrl: astrologer.astrologerProfile?.imageUrl??'',
+                                      isVideoCall: false,
+                                      channelName: 'call_${chatId}',
+                                    ),
+                                  ),
+                                );
                               },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
@@ -649,6 +675,18 @@ class _AstrologerProfileScreenState extends State<AstrologerProfileScreen>
                             GestureDetector(
                               onTap: () {
                                 // Add video logic here
+                                MessageService messageService = MessageService();
+                                String chatId=messageService.generateChatId(userStore.user!.id!, astrologer.id??'');
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => VideoCallingScreen(
+                                      receiverId: astrologer.id??'',
+                                      receiverImageUrl: astrologer.astrologerProfile?.imageUrl??'',
+                                      channelName: 'call_${chatId}',
+                                    ),
+                                  ),
+                                );
                               },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
