@@ -25,7 +25,7 @@ class CommonUtilities {
 
   static Future<dynamic> fetchCity(String searchString) async {
     final url =
-        'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$searchString&types=(cities)&key=AIzaSyA2ePDSb0Y1wStqWbLA0UwvFGZMXb7KuOY';
+        'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$searchString&types=(cities)&components=country:in&key=AIzaSyA2ePDSb0Y1wStqWbLA0UwvFGZMXb7KuOY';
     final response = await http.get(Uri.parse(url));
     final data = jsonDecode(response.body);
     if (data['status'] == 'OK') {

@@ -190,6 +190,7 @@ class AgoraService {
     final uid = generateUid(userId);
 
     print("uid ==== ${uid}");
+    print("channelName ==== ${channelName}");
 
     // uid ==== 342261
     // Remote user joineddddd: 51388, localId === 342261

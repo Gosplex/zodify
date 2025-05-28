@@ -547,19 +547,19 @@ class _AstrologerProfileScreenState extends State<AstrologerProfileScreen>
                               onTap: () {
                                 MessageService messageService = MessageService();
                                 String chatId=messageService.generateChatId(userStore.user!.id!, astrologer.id??'');
-                                Navigator.of(context)
-                                    .push(MaterialPageRoute(
-                                  builder: (context) {
-                                    return ChatMessageScreen(
-                                      chatId: chatId,  receiverId: astrologer.id??'',);
-                                  },
-                                ));
-                                // Navigator.of(context).push(MaterialPageRoute(
+                                // Navigator.of(context)
+                                //     .push(MaterialPageRoute(
                                 //   builder: (context) {
-                                //     return ChatIntakeFormScreen(
-                                //         astrologerDetails: astrologer);
+                                //     return ChatMessageScreen(
+                                //       chatId: chatId,  receiverId: astrologer.id??'',);
                                 //   },
                                 // ));
+                                Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) {
+                                    return ChatIntakeFormScreen(
+                                        astrologerDetails: astrologer);
+                                  },
+                                ));
                               },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(

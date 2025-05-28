@@ -32,10 +32,11 @@ class _ChatIntakeFormScreenState extends State<ChatIntakeFormScreen> {
 
   final ChatRequestService _chatRequestService = ChatRequestService();
   final MessageService _messageService = MessageService();
-
+  var _searchCityController=TextEditingController();
+  var cityList=[];
 
   String? _selectedGender;
-  String? _selectedBirthPlace;
+  String? _birthPlace;
   String? _selectedRelationshipStatus;
   bool _knowsBirthTime = true;
   bool _isLoading = false;
@@ -55,7 +56,8 @@ class _ChatIntakeFormScreenState extends State<ChatIntakeFormScreen> {
     _tobController.text = userStore.user!.birthTime??'';
     _knowsBirthTime = userStore.user!.birthTime != null ? true : false;
     _selectedGender = userStore.user!.gender;
-    _selectedBirthPlace = userStore.user!.birthPlace;
+    _birthPlace = userStore.user!.birthPlace;
+    _searchCityController.text = userStore.user!.birthPlace??'';
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -140,7 +142,7 @@ class _ChatIntakeFormScreenState extends State<ChatIntakeFormScreen> {
         gender: _selectedGender,
         dob: _dobController.text,
         tob: _knowsBirthTime ? _tobController.text : null,
-        birthPlace: _selectedBirthPlace,
+        birthPlace: _birthPlace,
         relationshipStatus: _selectedRelationshipStatus,
         occupation: _occupationController.text,
         topic: _topicController.text,
@@ -320,21 +322,74 @@ class _ChatIntakeFormScreenState extends State<ChatIntakeFormScreen> {
                 ),
               if (_knowsBirthTime) const SizedBox(height: 16),
 
-              // Prevent overflow by wrapping dropdown properly
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  return ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: constraints.maxWidth),
-                    child: _buildDropdownField(
-                      label: 'Place of Birth',
-                      icon: Icons.place,
-                      value: _selectedBirthPlace,
-                      items: AppConstants.indianStates,
-                      onChanged: (value) =>
-                          setState(() => _selectedBirthPlace = value),
-                    ),
-                  );
-                },
+              // // Prevent overflow by wrapping dropdown properly
+              // LayoutBuilder(
+              //   builder: (context, constraints) {
+              //     return ConstrainedBox(
+              //       constraints: BoxConstraints(maxWidth: constraints.maxWidth),
+              //       child: _buildDropdownField(
+              //         label: 'Place of Birth',
+              //         icon: Icons.place,
+              //         value: _selectedBirthPlace,
+              //         items: AppConstants.indianStates,
+              //         onChanged: (value) =>
+              //             setState(() => _selectedBirthPlace = value),
+              //       ),
+              //     );
+              //   },
+              // ),
+              Column(
+                children: [
+                  _buildTextFormField(
+                    controller: _searchCityController,
+                    label: 'Place of Birth',
+                    icon: Icons.access_time,
+                    onChangeCall:(v) async{
+                      if(_searchCityController.text.isNotEmpty){
+                        _birthPlace=null;
+                        cityList=await CommonUtilities.fetchCity(_searchCityController.text);
+                        setState(() {
+
+                        });
+                      }else{
+                        cityList.clear();
+                        setState(() {
+
+                        });
+                      }
+                    }
+                  ),
+                  if(cityList.isNotEmpty && _birthPlace==null)
+                    Container(
+                      margin: EdgeInsets.symmetric(horizontal: 8,vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          for(int i=0;i<cityList.length;i++)
+                            InkWell(
+                                onTap: (){
+                                  setState(() {
+                                    _birthPlace=cityList[i]['description'];
+                                    cityList.clear();
+                                    _searchCityController.text=_birthPlace??"";
+                                  });
+                                },
+                                child: Container(
+                                    margin: EdgeInsets.symmetric(vertical: 4),
+                                    padding: EdgeInsets.symmetric(horizontal: 8,vertical: 4),
+                                    decoration: BoxDecoration(
+                                        border: Border.all(color: Colors.grey),
+                                        borderRadius: BorderRadius.circular(12)
+                                    ),
+                                    child: Text(cityList[i]['description'])))
+                        ],
+                      ),
+                    )
+                ],
               ),
               const SizedBox(height: 24),
 
@@ -419,6 +474,7 @@ class _ChatIntakeFormScreenState extends State<ChatIntakeFormScreen> {
     bool readOnly = false,
     int? maxLines = 1,
     VoidCallback? onTap,
+    var onChangeCall,
     String? Function(String?)? validator,
   }) {
     return TextFormField(
@@ -426,6 +482,7 @@ class _ChatIntakeFormScreenState extends State<ChatIntakeFormScreen> {
       readOnly: readOnly || _isLoading,
       maxLines: maxLines,
       onTap: onTap,
+      onChanged: onChangeCall,
       style: AppTextStyles.bodyMedium(color: AppColors.textWhite),
       decoration: InputDecoration(
         labelText: label,
@@ -517,4 +574,5 @@ class _ChatIntakeFormScreenState extends State<ChatIntakeFormScreen> {
       onChanged: onChanged,
     );
   }
+
 }

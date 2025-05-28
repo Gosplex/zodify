@@ -25,6 +25,7 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
   int _currentStep = 1;
   final int _totalSteps = 7;
   var _searchCityController=TextEditingController();
+  var cityList=[];
   // Form data
   String _name = '';
   String? _gender;
@@ -34,7 +35,7 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
   String? _birthPlace;
   final List<String> _selectedLanguages = [];
 
-  var cityList=[];
+
 
   Future<void> createUser() async {
     try {
@@ -397,6 +398,20 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
                       TextField(
                         controller: _searchCityController,
                           cursorColor: AppColors.primaryLight,
+                          onChanged: (value) async{
+                            if(_searchCityController.text.isNotEmpty){
+                              _birthPlace=null;
+                              cityList=await CommonUtilities.fetchCity(_searchCityController.text);
+                              setState(() {
+
+                              });
+                            }else{
+                              cityList.clear();
+                              setState(() {
+
+                              });
+                            }
+                          },
                           // style: TextStyle(color: Colors.white),
                           decoration: InputDecoration(
                           hintText: 'Search City',
@@ -430,7 +445,6 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
                           ),
                           ),
                       if(cityList.isNotEmpty && _birthPlace==null)
-
                         Expanded(
                           child: SingleChildScrollView(
                             child: Column(

@@ -13,6 +13,8 @@ import '../../services/message_service.dart';
 import '../model/user_model.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'chat_intake_screen.dart';
+
 class AstrologerListScreen extends StatefulWidget {
   String? route;
   AstrologerListScreen({super.key, this.route});
@@ -397,13 +399,10 @@ class AstrologerCard extends StatelessWidget {
                 children: [
                   if(astro.astrologerProfile!.availability!.available_for_chat)
                   _buildActionButton(Icons.chat, "Chat",onClick: (){
-                    MessageService messageService = MessageService();
-                    String chatId=messageService.generateChatId(userStore.user!.id!, astro.id??'');
                     Navigator.of(context)
                         .push(MaterialPageRoute(
                       builder: (context) {
-                        return ChatMessageScreen(
-                            chatId: chatId,  receiverId: astro.id??'',);
+                        return ChatIntakeFormScreen(astrologerDetails: astro,);
                       },
                     ));
                   }),
