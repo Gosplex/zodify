@@ -1,3 +1,4 @@
+import 'package:astrology_app/client/screens/user_profile_screen.dart';
 import 'package:astrology_app/common/utils/constants.dart';
 import 'package:astrology_app/services/user_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -7,16 +8,21 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../astrologer/screens/astrologer_profile_screen.dart';
+import '../../common/screens/chat_history_screen.dart';
+import '../../common/screens/chat_message_screen.dart';
 import '../../common/utils/app_text_styles.dart';
 import '../../common/utils/colors.dart';
+import '../../common/utils/common.dart';
 import '../../common/utils/images.dart';
 import '../../main.dart';
+import '../../services/auth_services.dart';
+import '../../services/message_service.dart';
 import '../../services/notification_service.dart';
 import '../model/user_model.dart';
 import 'astrologer_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+   HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -27,7 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late Future<List<UserModel>> _astrologersFuture;
   final NotificationService _notificationService = NotificationService();
   final UserService _userService = UserService();
-
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   @override
   void initState() {
     super.initState();
@@ -68,8 +74,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     Color backgroundWhiteOpacity = Colors.white.withOpacity(0.3);
-
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: AppColors.primaryDark2,
       extendBody: true,
       extendBodyBehindAppBar: true,
@@ -77,8 +83,10 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.settings_outlined, color: Colors.white),
-          onPressed: () {}, // Add settings functionality
+          icon: Icon(Icons.menu_rounded, color: Colors.white),
+          onPressed: () {
+            _scaffoldKey.currentState?.openDrawer();
+          }, // Add settings functionality
         ),
         title: Text(
           'ZODIFY', // Your app name
@@ -128,6 +136,92 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               // Add space below app bar
               const SizedBox(height: kToolbarHeight + 60),
+              StreamBuilder(stream:  FirebaseFirestore.instance
+                  .collection('chat_requests')
+                  .where('userId', isEqualTo: userStore.user?.id??'')
+                  .where('status', whereIn: ['pending', 'accepted'])
+                  .snapshots(), builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const SizedBox();
+                }
+                final requests = snapshot.data!.docs;
+                String name=requests[0].data()['astrologerName']??'Astrologer-XYZ';
+                String currentStatus=requests[0].data()['status']??'Astrologer-XYZ';
+                return Container(
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF8E1), // Light yellow background
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 24,
+                        backgroundColor: Colors.yellow[700],
+                        child: const Icon(Icons.person, size: 30, color: Colors.brown),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("$name",
+                                style: const TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 4),
+                            Text(
+                                currentStatus=="accepted"?"Start Chat":
+                                "Waiting To Astrologer Accept.",
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.w500)),
+                          ],
+                        ),
+                      ),
+                      OutlinedButton(
+                        onPressed: (){
+                          print("CheckData CHAT REQ::${requests[0].data()}");
+                          if(requests[0].data()['status']=="accepted"){
+                            MessageService messageService =
+                            MessageService();
+                            final chatId =
+                            messageService.generateChatId(
+                                userStore.user!.id!, requests[0].data()['astrologerId']);
+                            Navigator.of(context)
+                                .push(MaterialPageRoute(
+                              builder: (context) {
+                                return ChatMessageScreen(
+                                    chatId: chatId, receiverId: requests[0].data()['astrologerId']);
+                              },
+                            ));
+                          }else{
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Waiting For Astrologer to accept your chat request')),
+                            );
+                          }
+                        },
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.blue, width: 2),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          padding:
+                          const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        ),
+                        child: const Text("Chat",
+                            style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w600)),
+                      )
+                    ],
+                  ),
+                );
+              },),
+
               // Semi-transparent search bar
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -438,6 +532,81 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
+        ),
+      ),
+      drawer: Drawer(
+        backgroundColor: Colors.grey[900], // Dark background
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(color: Colors.grey[850]),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundColor: Colors.white24,
+                    child: Icon(Icons.person, size: 30, color: Colors.white),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    userStore.user?.name??"GuestUser",
+                    style: TextStyle(color: Colors.white, fontSize: 18),
+                  ),
+                  Text(
+                    userStore.user?.email??'user@example.com',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.person, color: Colors.white),
+              title: Text('Profile', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => UserProfileScreen(),));
+                // Navigate to profile screen
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.history, color: Colors.white),
+              title: Text('Chat History', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => ChatHistoryScreen(),));
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.logout, color: Colors.white),
+              title: Text('Logout', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                // Perform logout
+                CommonUtilities.showCustomDialog(
+                  context: context,
+                  icon: Icons.power_settings_new,
+                  message: 'Are you sure you want to log out?',
+                  firstButtonText: 'Cancel',
+                  firstButtonCallback: () {},
+                  secondButtonText: 'Log Out',
+                  secondButtonCallback: () async {
+                    await AuthService().signOut(
+                      callback: (success, error) {
+                        if (success) {
+                          Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            '/login',
+                                (route) => false,
+                          );
+                        } else {
+                          CommonUtilities.showError(context, error!);
+                        }
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+          ],
         ),
       ),
     );

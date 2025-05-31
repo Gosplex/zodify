@@ -76,7 +76,7 @@ class UserModel {
       phoneNumber: json['phoneNumber'],
       email: json['email'],
       name: json['name'],
-      userProfile: json['userProfile'],
+      userProfile: json['userProfile']??json['imageUrl']??"https://as2.ftcdn.net/jpg/02/75/60/35/1000_F_275603548_VIAKu1fpkujDwrCrXox5RWWjW7SeBkdX.jpg",
       fcmToken: json['fcmToken'],
       languages: (json['languages'] as List?)?.map((e) => e.toString()).toList(),
       createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,

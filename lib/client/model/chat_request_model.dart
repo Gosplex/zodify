@@ -15,9 +15,11 @@ class ChatRequest {
   final String topic;
   final String status; // pending, accepted, rejected
   final DateTime createdAt;
+  final String astrologerName;
 
   ChatRequest({
     required this.id,
+    required this.astrologerName,
     required this.userId,
     required this.astrologerId,
     required this.firstName,
@@ -37,6 +39,7 @@ class ChatRequest {
   factory ChatRequest.fromJson(Map<String, dynamic> json) {
     return ChatRequest(
       id: json['id'] as String,
+      astrologerName: json['astrologerName'] as String,
       userId: json['userId'] as String,
       astrologerId: json['astrologerId'] as String,
       firstName: json['firstName'] as String,
@@ -57,6 +60,7 @@ class ChatRequest {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'astrologerName': astrologerName,
       'userId': userId,
       'astrologerId': astrologerId,
       'firstName': firstName,

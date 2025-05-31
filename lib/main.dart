@@ -66,7 +66,7 @@ class MyApp extends StatelessWidget {
         '/client_registration': (context) => const UserRegistrationScreen(),
         '/registration_choice': (context) =>
         const UserRegistrationChoiceScreen(),
-        '/user_profile': (context) => const UserProfileScreen(),
+        '/user_profile': (context) => UserProfileScreen(),
         '/wallet_transaction': (context) => const WalletHistoryScreen(),
         '/user_edit_profile': (context) => const EditUserProfileScreen(),
         '/chat_list': (context) => const ChatListScreen(),

@@ -1,9 +1,9 @@
-import 'dart:convert';
 import 'dart:io';
-
+import 'package:astrology_app/common/screens/splash_screen.dart';
 import 'package:astrology_app/common/screens/video_call_screen.dart';
 import 'package:astrology_app/common/utils/common.dart';
 import 'package:astrology_app/main.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/public/flutter_sound_player.dart';
 import 'package:flutter_sound/public/flutter_sound_recorder.dart';
@@ -26,11 +26,14 @@ import 'calling_screen.dart';
 class ChatMessageScreen extends StatefulWidget {
   final String chatId;
   final String receiverId;
+  final bool? isHistoryMode;
+  var initialMsg;
 
-  const ChatMessageScreen({
+  ChatMessageScreen({
     super.key,
     required this.chatId,
-    required this.receiverId,
+    this.isHistoryMode,
+    required this.receiverId,this.initialMsg,
   });
 
   @override
@@ -52,6 +55,18 @@ class _ChatMessageScreenState extends State<ChatMessageScreen> {
   @override
   void initState() {
     print(widget.chatId.toString()+":::CHeck Chat ID");
+    print(widget.initialMsg.toString()+":::CHeck initialMsg");
+    if(widget.initialMsg!=null){
+      _messageService.sendMessage(
+        chatId: widget.chatId,
+        senderId: widget.receiverId,
+        receiverId:currentUserId,
+        content: widget.initialMsg,
+        messageType: MessageType.text,
+      );
+    }
+
+    _messageService.getMessages(widget.chatId);
     super.initState();
     _initRecorder();
   }
@@ -150,14 +165,13 @@ class _ChatMessageScreenState extends State<ChatMessageScreen> {
           builder: (context, snapshot) {
             String userName = 'Astrologer';
             bool isOnline = false;
-
             if (snapshot.connectionState == ConnectionState.done &&
                 snapshot.hasData) {
               userName = snapshot.data!.name!;
-              imageUrl = snapshot.data?.userProfile ?? "";
+              imageUrl = snapshot.data?.userProfile ??snapshot.data?.userProfile?? "";
               isOnline = snapshot.data!.isOnline ?? false;
             }
-
+            print("");
             return Row(
               children: [
                 CircleAvatar(
@@ -175,32 +189,74 @@ class _ChatMessageScreenState extends State<ChatMessageScreen> {
                       : null,
                 ),
                 const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      userName,
-                      style: AppTextStyles.bodyMedium(
-                        color: AppColors.textWhite,
-                        fontWeight: FontWeight.w600,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        userName,
+                        style: AppTextStyles.bodyMedium(
+                          color: AppColors.textWhite,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                    Text(
-                      isOnline ? 'Online' : 'Offline',
-                      style: AppTextStyles.captionText(
-                        color: isOnline
-                            ? AppColors.successGreen
-                            : AppColors.textWhite70,
-                        fontSize: 12,
+                      Text(
+                        isOnline ? 'Online' : 'Offline',
+                        style: AppTextStyles.captionText(
+                          color: isOnline
+                              ? AppColors.successGreen
+                              : AppColors.textWhite70,
+                          fontSize: 12,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             );
           },
         ),
-        actions: [
+        actions: widget.isHistoryMode==true?[]:[
+          if(userStore.user?.astrologerProfile==null)
+          IconButton(onPressed: (){
+            showDialog<bool>(
+              context: context,
+              barrierDismissible: false, // Force the user to choose an option
+              builder: (context) => AlertDialog(
+                title: const Text('Close Session'),
+                content: const Text('Are you sure you want to close this session?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false), // Cancel
+                    child: const Text('Cancel'),
+                  ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                    ),
+                    onPressed: () async{
+                      // Start Delete Specific Chat Request Start
+                      final firestore = FirebaseFirestore.instance;
+                      final userId = userStore.user?.id;
+                      final astrologerId = widget.receiverId; // Replace with actual astrologer ID
+                      final querySnapshot = await firestore
+                          .collection('chat_requests')
+                          .where('userId', isEqualTo: userId)
+                          .where('astrologerId', isEqualTo: astrologerId)
+                          .get();
+                      for (final doc in querySnapshot.docs) {
+                        await firestore.collection('chat_requests').doc(doc.id).delete();
+                      }
+                      await firestore.collection("chats").doc(widget.chatId).delete();
+                      print("operation.chat_requests.done");
+                      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => SplashScreen(),), (route) => false,);
+                    }, // Confirm
+                    child: Text('YES',style: TextStyle(color: AppColors.textWhite),),
+                  ),
+                ],
+              ),
+            );
+          }, icon: Icon(Icons.cancel_outlined,color: Colors.red,)),
           IconButton(
             icon: FaIcon(
               FontAwesomeIcons.phone,
@@ -253,29 +309,29 @@ class _ChatMessageScreenState extends State<ChatMessageScreen> {
       body: Column(
         children: [
           // Search Bar
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.primaryDark.withOpacity(0.4),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: AppColors.zodiacGold.withOpacity(0.3),
-                ),
-              ),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search in conversation...',
-                  hintStyle:
-                  AppTextStyles.bodyMedium(color: AppColors.textWhite70),
-                  prefixIcon: Icon(Icons.search, color: AppColors.textWhite70),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                style: AppTextStyles.bodyMedium(color: AppColors.textWhite),
-              ),
-            ),
-          ),
+          // Padding(
+          //   padding: const EdgeInsets.all(12.0),
+          //   child: Container(
+          //     decoration: BoxDecoration(
+          //       color: AppColors.primaryDark.withOpacity(0.4),
+          //       borderRadius: BorderRadius.circular(20),
+          //       border: Border.all(
+          //         color: AppColors.zodiacGold.withOpacity(0.3),
+          //       ),
+          //     ),
+          //     child: TextField(
+          //       decoration: InputDecoration(
+          //         hintText: 'Search in conversation...',
+          //         hintStyle:
+          //         AppTextStyles.bodyMedium(color: AppColors.textWhite70),
+          //         prefixIcon: Icon(Icons.search, color: AppColors.textWhite70),
+          //         border: InputBorder.none,
+          //         contentPadding: const EdgeInsets.symmetric(vertical: 12),
+          //       ),
+          //       style: AppTextStyles.bodyMedium(color: AppColors.textWhite),
+          //     ),
+          //   ),
+          // ),
           // Messages List
           Expanded(
             child: Container(
@@ -358,6 +414,7 @@ class _ChatMessageScreenState extends State<ChatMessageScreen> {
               ),
             ),
           ),
+          if(widget.isHistoryMode!=true)
           // Message Input
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

@@ -23,6 +23,7 @@ class ChatRequestService {
   Future<String?> createChatRequest({
     required String astrologerId,
     required String firstName,
+    required String astrologerName,
     required String lastName,
     String? gender,
     required String dob,
@@ -42,6 +43,7 @@ class ChatRequestService {
       id: _firestore.collection(_collectionPath).doc().id,
       userId: userId,
       astrologerId: astrologerId,
+      astrologerName: astrologerName,
       firstName: firstName,
       lastName: lastName,
       gender: gender,

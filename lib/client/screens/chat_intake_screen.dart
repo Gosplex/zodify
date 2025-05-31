@@ -137,6 +137,7 @@ class _ChatIntakeFormScreenState extends State<ChatIntakeFormScreen> {
       // Create chat request using the service
       final requestId = await _chatRequestService.createChatRequest(
         astrologerId: widget.astrologerDetails.id!,
+        astrologerName: widget.astrologerDetails.name!,
         firstName: _firstNameController.text,
         lastName: _lastNameController.text,
         gender: _selectedGender,

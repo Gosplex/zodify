@@ -37,32 +37,32 @@ class _ChatListScreenState extends State<ChatListScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          'Chats',
-          style: AppTextStyles.heading2(
-            color: AppColors.textWhite,
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        centerTitle: true,
-      ),
+      // appBar: AppBar(
+      //   backgroundColor: Colors.transparent,
+      //   elevation: 0,
+      //   title: Text(
+      //     'Chats',
+      //     style: AppTextStyles.heading2(
+      //       color: AppColors.textWhite,
+      //       fontSize: 22,
+      //       fontWeight: FontWeight.w700,
+      //     ),
+      //   ),
+      //   centerTitle: true,
+      // ),
       body: Stack(
         children: [
           Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: const AssetImage(AppImages.ic_background_user),
-                fit: BoxFit.cover,
-                colorFilter: ColorFilter.mode(
-                  Colors.black.withOpacity(0.7),
-                  BlendMode.darken,
-                ),
-              ),
-            ),
+            // decoration: BoxDecoration(
+            //   image: DecorationImage(
+            //     image: const AssetImage(AppImages.ic_background_user),
+            //     fit: BoxFit.cover,
+            //     colorFilter: ColorFilter.mode(
+            //       Colors.black.withOpacity(0.7),
+            //       BlendMode.darken,
+            //     ),
+            //   ),
+            // ),
           ),
           SafeArea(
             child: Column(

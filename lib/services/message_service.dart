@@ -140,6 +140,19 @@ class MessageService {
     });
   }
 
+  /// Retrieves a stream of chats for a user (for ChatListScreen)
+  Stream<List<ChatModel>> getUserChatsHistory(String userId) {
+    return _firestore
+        .collection("chat_history")
+        .where('participants', arrayContains: userId)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        return ChatModel.fromMap(doc.data(), doc.id);
+      }).toList();
+    });
+  }
+
   /// Generates a unique chat ID based on user IDs
   String generateChatId(String userId1, String userId2) {
     final ids = [userId1, userId2]..sort();

@@ -1,7 +1,10 @@
+import 'package:astrology_app/astrologer/screens/pending_chat_request.dart';
+import 'package:astrology_app/client/screens/user_profile_screen.dart';
 import 'package:astrology_app/main.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../client/model/user_model.dart';
+import '../../common/screens/chat_history_screen.dart';
 import '../../common/utils/app_text_styles.dart';
 import '../../common/utils/colors.dart';
 import '../../common/utils/common.dart';
@@ -24,7 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isCallEnabled = false;
   bool isChatEnabled = false;
   bool isVideoEnabled = false;
-
+  final GlobalKey<ScaffoldState> _scaffoldKeyAstro = GlobalKey<ScaffoldState>();
   Future<void> initializeNotifications() async {
     try {
       debugPrint('Initializing notifications in HomeScreen...');
@@ -57,7 +60,9 @@ class _HomeScreenState extends State<HomeScreen> {
         FontAwesomeIcons.commentDots,
         'Chat',
         Colors.purple,
-            () {},
+            () {
+          Navigator.push(context, MaterialPageRoute(builder: (context) => ChatRequestsListScreen(),));
+            },
       ),
       DashboardItem(
         FontAwesomeIcons.phone,
@@ -131,6 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     ];
     return Scaffold(
+      key: _scaffoldKeyAstro,
       backgroundColor: AppColors.primaryDark,
       extendBody: true,
       extendBodyBehindAppBar: true,
@@ -138,36 +144,10 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(
-            Icons.power_settings_new,
-            color: Colors.red,
-            size: 24,
-          ),
+          icon: Icon(Icons.menu_rounded, color: Colors.white),
           onPressed: () {
-            CommonUtilities.showCustomDialog(
-              context: context,
-              icon: Icons.power_settings_new,
-              message: 'Are you sure you want to log out?',
-              firstButtonText: 'Cancel',
-              firstButtonCallback: () {},
-              secondButtonText: 'Log Out',
-              secondButtonCallback: () async {
-                await AuthService().signOut(
-                  callback: (success, error) {
-                    if (success) {
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        '/login',
-                        (route) => false,
-                      );
-                    } else {
-                      CommonUtilities.showError(context, error!);
-                    }
-                  },
-                );
-              },
-            );
-          },
+            _scaffoldKeyAstro.currentState?.openDrawer();
+          }, // Add settings functionality
         ),
         title: Text(
           '${userStore.user!.name!.split(' ')[0].toUpperCase()} ASTROLOGER',
@@ -249,6 +229,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             "available_for_video":isVideoEnabled,
                             "available_for_chat":isChatEnabled,
                           });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Status Updated Successfully')),
+                          );
                         }, child: Text("Save")),
                       )
                     ],
@@ -275,6 +258,81 @@ class _HomeScreenState extends State<HomeScreen> {
               ]
             ),
           )
+        ),
+      ),
+      drawer: Drawer(
+        backgroundColor: Colors.grey[900], // Dark background
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(color: Colors.grey[850]),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundColor: Colors.white24,
+                    child: Icon(Icons.person, size: 30, color: Colors.white),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    userStore.user?.name??"GuestUser",
+                    style: TextStyle(color: Colors.white, fontSize: 18),
+                  ),
+                  Text(
+                    userStore.user?.email??'user@example.com',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.person, color: Colors.white),
+              title: Text('Profile', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => UserProfileScreen(hideAstroBtn: true,),));
+                // Navigate to profile screen
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.history, color: Colors.white),
+              title: Text('Chat History', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => ChatHistoryScreen(),));
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.logout, color: Colors.white),
+              title: Text('Logout', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                // Perform logout
+                CommonUtilities.showCustomDialog(
+                  context: context,
+                  icon: Icons.power_settings_new,
+                  message: 'Are you sure you want to log out?',
+                  firstButtonText: 'Cancel',
+                  firstButtonCallback: () {},
+                  secondButtonText: 'Log Out',
+                  secondButtonCallback: () async {
+                    await AuthService().signOut(
+                      callback: (success, error) {
+                        if (success) {
+                          Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            '/login',
+                                (route) => false,
+                          );
+                        } else {
+                          CommonUtilities.showError(context, error!);
+                        }
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+          ],
         ),
       ),
     );

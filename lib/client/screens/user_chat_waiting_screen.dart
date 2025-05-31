@@ -51,7 +51,7 @@ class _UserChatWaitingScreenState extends State<UserChatWaitingScreen> {
         final chatRequest = ChatRequest.fromJson(snapshot.data() as Map<String, dynamic>);
 
         if (chatRequest.status == 'accepted') {
-          _navigateToChatScreen();
+          _navigateToChatScreen(chatRequest);
         } else if (chatRequest.status == 'rejected') {
           _handleRejection();
         }
@@ -65,9 +65,8 @@ class _UserChatWaitingScreenState extends State<UserChatWaitingScreen> {
     });
   }
 
-  void _navigateToChatScreen() {
+  void _navigateToChatScreen(ChatRequest chatRequest) {
     if (_isDisposed) return;
-
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (context) => ChatMessageScreen(

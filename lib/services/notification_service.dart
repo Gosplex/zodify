@@ -13,6 +13,7 @@ import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import '../astrologer/screens/accept_reject_chat_request.dart';
+import '../astrologer/screens/pending_chat_request.dart';
 import '../common/screens/ongoing_call_screen.dart';
 import '../common/screens/ongoing_video_calling_screen.dart';
 import '../common/screens/video_call_screen.dart';
@@ -102,12 +103,18 @@ class NotificationService {
                 .get();
 
             Future.microtask(() {
+              // _navigatorKey?.currentState?.push(
+              //   MaterialPageRoute(
+              //     builder: (context) => AcceptRejectScreen(
+              //       requestData: docSnapshot.data() as Map<String, dynamic>,
+              //       requestId: requestId,
+              //       userId: userId,
+              //     ),
+              //   ),
+              // );
               _navigatorKey?.currentState?.push(
                 MaterialPageRoute(
-                  builder: (context) => AcceptRejectScreen(
-                    requestData: docSnapshot.data() as Map<String, dynamic>,
-                    requestId: requestId,
-                    userId: userId,
+                  builder: (context) => ChatRequestsListScreen(
                   ),
                 ),
               );
@@ -412,12 +419,18 @@ class NotificationService {
               .get();
 
           if (docSnapshot.exists) {
-            _navigatorKey!.currentState?.push(
+            // _navigatorKey!.currentState?.push(
+            //   MaterialPageRoute(
+            //     builder: (context) => AcceptRejectScreen(
+            //       requestId: requestId,
+            //       userId: userId,
+            //       requestData: docSnapshot.data() as Map<String, dynamic>,
+            //     ),
+            //   ),
+            // );
+            _navigatorKey?.currentState?.push(
               MaterialPageRoute(
-                builder: (context) => AcceptRejectScreen(
-                  requestId: requestId,
-                  userId: userId,
-                  requestData: docSnapshot.data() as Map<String, dynamic>,
+                builder: (context) => ChatRequestsListScreen(
                 ),
               ),
             );

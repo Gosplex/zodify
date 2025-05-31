@@ -19,7 +19,8 @@ import '../model/user_model.dart';
 import '../model/wallet_transaction_model.dart';
 
 class UserProfileScreen extends StatefulWidget {
-  const UserProfileScreen({super.key});
+  bool? hideAstroBtn;
+  UserProfileScreen({super.key, this.hideAstroBtn});
 
   @override
   State<UserProfileScreen> createState() => _UserProfileScreenState();
@@ -533,6 +534,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                               ],
                             ),
                             const SizedBox(height: 12),
+
                             // Switch Account
                             user.astrologerProfile == null
                                 ? Container(
@@ -596,7 +598,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                 ],
                               ),
                             )
-                                : SizedBox(
+                                :
+                            widget.hideAstroBtn==true?SizedBox():
+                            SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
                                 onPressed: () {
@@ -657,15 +661,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                               title: "Phone",
                               value: user.phoneNumber ?? '+91 XXXXXXXXXX',
                             ),
-                            const SizedBox(height: 16),
-                            _buildDetailCard(
-                              icon: Icons.account_balance_wallet,
-                              title: "Wallet Balance",
-                              value: CommonUtilities.formatCurrency(
-                                  userStore.user?.walletBalance),
-                              buttonText: "Fund Wallet",
-                              onButtonPressed: _showFundWalletDialog,
-                            ),
+                            // const SizedBox(height: 16),
+                            // _buildDetailCard(
+                            //   icon: Icons.account_balance_wallet,
+                            //   title: "Wallet Balance",
+                            //   value: CommonUtilities.formatCurrency(
+                            //       userStore.user?.walletBalance),
+                            //   buttonText: "Fund Wallet",
+                            //   onButtonPressed: _showFundWalletDialog,
+                            // ),
                             const SizedBox(height: 32),
                             SizedBox(
                               width: MediaQuery.of(context).size.width,

@@ -29,7 +29,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
   Widget getCurrentScreen() {
     switch (_currentIndex) {
       case 0:
-        return const HomeScreen();
+        return HomeScreen();
       case 1:
         return AstrologerListScreen(key: ValueKey('chat'), route: "chat");
       case 2:
@@ -37,7 +37,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
       case 3:
         return AstrologerListScreen(key: ValueKey('video'), route: "video");
       default:
-        return const HomeScreen();
+        return HomeScreen();
     }
   }
 
