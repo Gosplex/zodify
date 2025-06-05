@@ -24,10 +24,13 @@ class _EditUserProfileScreenState extends State<EditUserProfileScreen> {
   late TextEditingController _birthDateController;
   late TextEditingController _birthTimeController;
   late TextEditingController _phoneController;
-  String? _selectedBirthPlace;
+  // String? _selectedBirthPlace;
   String? _selectedGender;
   bool _knowsBirthTime = false;
   List<String> _selectedLanguages = [];
+  var _searchCityController=TextEditingController();
+  var cityList=[];
+  String? _birthPlace;
 
   @override
   void initState() {
@@ -38,7 +41,8 @@ class _EditUserProfileScreenState extends State<EditUserProfileScreen> {
     _birthDateController = TextEditingController(text: user.birthDate);
     _birthTimeController = TextEditingController(text: user.birthTime);
     _phoneController = TextEditingController(text: user.phoneNumber);
-    _selectedBirthPlace = user.birthPlace;
+    // _selectedBirthPlace = user.birthPlace;
+    _searchCityController.text = user.birthPlace??"";
     _selectedGender = user.gender;
     _knowsBirthTime = user.knowsBirthTime ?? false;
     _selectedLanguages = user.languages?.toList() ?? [];
@@ -122,7 +126,7 @@ class _EditUserProfileScreenState extends State<EditUserProfileScreen> {
         birthDate: _birthDateController.text.trim(),
         birthTime: _knowsBirthTime ? _birthTimeController.text.trim() : null,
         knowsBirthTime: _knowsBirthTime,
-        birthPlace: _selectedBirthPlace,
+        birthPlace: _searchCityController.text,
         phoneNumber: _phoneController.text.trim(),
         languages: _selectedLanguages,
         // updatedAt: DateTime.now().toIso8601String(),
@@ -461,17 +465,55 @@ class _EditUserProfileScreenState extends State<EditUserProfileScreen> {
                       ),
 
                       // Birth Place
-                      _buildDropdownField(
-                        label: 'Birth Place',
-                        icon: Icons.place,
-                        value: _selectedBirthPlace,
-                        items: AppConstants.indianStates,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedBirthPlace = value;
-                          });
-                        },
+                      _buildTextFormField(
+                          controller: _searchCityController,
+                          label: 'Place of Birth',
+                          icon: Icons.access_time,
+                          onChangeCall:(v) async{
+                            if(_searchCityController.text.isNotEmpty){
+                              _birthPlace=null;
+                              cityList=await CommonUtilities.fetchCity(_searchCityController.text);
+                              setState(() {
+
+                              });
+                            }else{
+                              cityList.clear();
+                              setState(() {
+
+                              });
+                            }
+                          }
                       ),
+                      if(cityList.isNotEmpty && _birthPlace==null)
+                        Container(
+                          margin: EdgeInsets.symmetric(horizontal: 8,vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              for(int i=0;i<cityList.length;i++)
+                                InkWell(
+                                    onTap: (){
+                                      setState(() {
+                                        _birthPlace=cityList[i]['description'];
+                                        cityList.clear();
+                                        _searchCityController.text=_birthPlace??"";
+                                      });
+                                    },
+                                    child: Container(
+                                        margin: EdgeInsets.symmetric(vertical: 4),
+                                        padding: EdgeInsets.symmetric(horizontal: 8,vertical: 4),
+                                        decoration: BoxDecoration(
+                                            border: Border.all(color: Colors.grey),
+                                            borderRadius: BorderRadius.circular(12)
+                                        ),
+                                        child: Text(cityList[i]['description'])))
+                            ],
+                          ),
+                        ),
                       // Phone Number
                       _buildTextField(
                         controller: _phoneController,
@@ -527,4 +569,69 @@ class _EditUserProfileScreenState extends State<EditUserProfileScreen> {
       ),
     );
   }
+
+  Widget _buildTextFormField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    bool readOnly = false,
+    int? maxLines = 1,
+    VoidCallback? onTap,
+    var onChangeCall,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      readOnly: readOnly ,
+      maxLines: maxLines,
+      onTap: onTap,
+      onChanged: onChangeCall,
+      style: AppTextStyles.bodyMedium(color: AppColors.textWhite),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: AppTextStyles.captionText(color: AppColors.textWhite70),
+        prefixIcon: Icon(icon, color: AppColors.zodiacGold),
+        filled: true,
+        fillColor: AppColors.primaryDark.withOpacity(0.5),
+        errorStyle: AppTextStyles.captionText(color: Colors.redAccent),
+        // Add this
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: AppColors.zodiacGold.withOpacity(0.3),
+            width: 1,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: AppColors.zodiacGold,
+            width: 1.5,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          // Add this
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Colors.redAccent,
+            width: 1.5,
+          ),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          // Add this
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Colors.redAccent,
+            width: 1.5,
+          ),
+        ),
+      ),
+      validator: validator,
+    );
+  }
+
 }

@@ -22,9 +22,20 @@ class PreferenceService {
     return prefs.getString(_keyUserId);
   }
 
+  static Future<bool> setVal({required String key, required String val}) async {
+    final prefs = await SharedPreferences.getInstance();
+    return await prefs.setString(key,val);
+  }
+
+  static Future<String?> getVal({required String key}) async {
+    final prefs = await SharedPreferences.getInstance();
+    return await prefs.getString(key);
+  }
+
   static Future<void> clear() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_keyLoggedIn);
+    await prefs.remove(_keyUserId);
     await prefs.remove(_keyUserId);
   }
 }

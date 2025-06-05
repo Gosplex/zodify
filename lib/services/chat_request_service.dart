@@ -19,6 +19,22 @@ class ChatRequestService {
     }
   }
 
+  Future<String?> removeOldChat(String id) async {
+    try {
+      QuerySnapshot snapshot = await _firestore
+          .collection('chat_requests')
+          .where('userId', isEqualTo: id)
+          .get();
+      for (QueryDocumentSnapshot doc in snapshot.docs) {
+        await _firestore.collection('chat_requests').doc(doc.id).delete();
+        print("Deleted document with ID: ${doc.id}");
+      }
+    } catch (e) {
+      print('Error saving chat request: $e');
+      return null;
+    }
+  }
+
   // Generate a new chat request
   Future<String?> createChatRequest({
     required String astrologerId,

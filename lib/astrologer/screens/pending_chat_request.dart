@@ -91,7 +91,7 @@ class _ChatRequestsListScreenState extends State<ChatRequestsListScreen> with Si
             ),
           ),
         ),
-        child:true?    TabBarView(
+        child:TabBarView(
           physics: NeverScrollableScrollPhysics(),
           controller: tabController,
           children: [
@@ -194,128 +194,7 @@ class _ChatRequestsListScreenState extends State<ChatRequestsListScreen> with Si
               ),
             ),
           ],
-        ): Stack(
-          children: [
-            Column(
-              children: [
-                // TabBar(
-                //     controller: tabController,
-                //     tabs:[
-                //   Icon(Icons.chair),
-                //   Icon(Icons.abc_rounded),
-                // ]),
-                Expanded(
-                  child: TabBarView(
-                    controller: tabController,
-                    children: [
-                      ChatListScreen(),
-                      StreamBuilder<QuerySnapshot>(
-                        stream: FirebaseFirestore.instance
-                            .collection('chat_requests')
-                            .where('astrologerId', isEqualTo: currentUserId)
-                            .where('status', isEqualTo: 'pending') // Only show pending requests
-                            // .orderBy('createdAt', descending: true)
-                            .snapshots(),
-                        builder: (context, snapshot) {
-                          print("CheckUserID:::${currentUserId}");
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return const Center(child: CircularProgressIndicator());
-                          }
-
-                          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                            return const Center(child: Text('No chat requests'));
-                          }
-
-                          final requests = snapshot.data!.docs;
-
-                          return ListView.separated(
-                            itemCount: requests.length,
-                            separatorBuilder: (_, __) => const Divider(),
-                            itemBuilder: (context, index) {
-                              final doc = requests[index];
-                              final data = doc.data() as Map<String, dynamic>;
-                              final userName = '${data['firstName'] ?? ''} ${data['lastName'] ?? ''}'.trim();
-                              return Container(
-                                margin: EdgeInsets.symmetric(horizontal: 16),
-                                padding: EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  border: Border.all(color: Colors.grey),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  mainAxisSize: MainAxisSize.max,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Icon(Icons.person_outlined),
-                                        SizedBox(width: 8,),
-                                        Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(userName,style: TextStyle(fontSize: 18,fontWeight: FontWeight.w500),),
-                                            Row(
-                                              children: [
-                                                Text(data['gender'].toString(),style: TextStyle(fontSize: 12,color: Colors.grey,fontWeight: FontWeight.w500),),
-                                                Text(" | ",style: TextStyle(fontSize: 12,color: Colors.grey,fontWeight: FontWeight.w500),),
-                                                Text("DOB:"+data['dob'].toString(),style: TextStyle(fontSize: 12,color: Colors.grey,fontWeight: FontWeight.w500),),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                    Row(
-                                      children: [
-                                        IconButton(onPressed: (){
-                                          _acceptRequest(reqID: data['id'], userId: data['userId']);
-                                        }, icon: Icon(Icons.done,color: Colors.green,)),
-                                        IconButton(onPressed: (){
-                                          _rejectRequest(reqID: data['id'], userId: data['userId']);
-                                        }, icon: Icon(Icons.close,color: Colors.red,)),
-                                      ],
-                                    )
-                                  ],
-                                ),
-                              );
-                              // return ListTile(
-                              //   leading: const CircleAvatar(child: Icon(Icons.person)),
-                              //   title: Text(userName.isNotEmpty ? userName : 'User ${data['userId']}'),
-                              //   subtitle: Text('Requested at: ${data['createdAt'].toDate()}'),
-                              //   trailing: const Icon(Icons.chevron_right),
-                              //
-                              //   onTap: () {
-                              //     Navigator.push(
-                              //       context,
-                              //       MaterialPageRoute(
-                              //         builder: (_) => AcceptRejectScreen(
-                              //           requestId: doc.id,
-                              //           userId: data['userId'],
-                              //           requestData: data,
-                              //         ),
-                              //       ),
-                              //     );
-                              //   },
-                              // );
-                            },
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            if (_isProcessing)
-              Center(
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                ),
-              ),
-          ],
-        ),
+        )
       ),
     );
   }

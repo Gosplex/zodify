@@ -13,6 +13,7 @@ import '../../common/utils/app_text_styles.dart';
 import '../../common/utils/colors.dart';
 import '../../common/utils/common.dart';
 import '../../common/utils/images.dart';
+import '../../services/preference_services.dart';
 import '../../services/razorpay_service.dart';
 import '../../services/wallet_services.dart';
 import '../model/user_model.dart';
@@ -604,6 +605,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                               width: double.infinity,
                               child: ElevatedButton(
                                 onPressed: () {
+                                  PreferenceService.setVal(key: "user_mode", val: "astro");
                                   // Navigate to astrologer dashboard or switch mode
                                   Navigator.pushNamed(context, '/astrologer_home');
                                 },

@@ -167,8 +167,13 @@ class _AstrologerListScreenState extends State<AstrologerListScreen> {
         ),
         backgroundColor: Colors.black,
         actions: [
-          CircleAvatar(
-            backgroundImage: NetworkImage('https://img.freepik.com/free-psd/spectacular-flight-vivid-green-bird_191095-78393.jpg'),
+          GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(context, '/user_profile');
+            },
+            child: CircleAvatar(
+              backgroundImage: NetworkImage('https://img.freepik.com/free-psd/spectacular-flight-vivid-green-bird_191095-78393.jpg'),
+            ),
           ),
           SizedBox(width: 16),
         ],

@@ -67,32 +67,32 @@ class _ChatListScreenState extends State<ChatListScreen> {
           SafeArea(
             child: Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryDark.withOpacity(0.4),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: AppColors.zodiacGold.withOpacity(0.3),
-                      ),
-                    ),
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Search...',
-                        hintStyle: AppTextStyles.bodyMedium(
-                            color: AppColors.textWhite70),
-                        prefixIcon:
-                            Icon(Icons.search, color: AppColors.textWhite70),
-                        border: InputBorder.none,
-                        contentPadding:
-                            const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      style:
-                          AppTextStyles.bodyMedium(color: AppColors.textWhite),
-                    ),
-                  ),
-                ),
+                // Padding(
+                //   padding: const EdgeInsets.all(16.0),
+                //   child: Container(
+                //     decoration: BoxDecoration(
+                //       color: AppColors.primaryDark.withOpacity(0.4),
+                //       borderRadius: BorderRadius.circular(20),
+                //       border: Border.all(
+                //         color: AppColors.zodiacGold.withOpacity(0.3),
+                //       ),
+                //     ),
+                //     child: TextField(
+                //       decoration: InputDecoration(
+                //         hintText: 'Search...',
+                //         hintStyle: AppTextStyles.bodyMedium(
+                //             color: AppColors.textWhite70),
+                //         prefixIcon:
+                //             Icon(Icons.search, color: AppColors.textWhite70),
+                //         border: InputBorder.none,
+                //         contentPadding:
+                //             const EdgeInsets.symmetric(vertical: 12),
+                //       ),
+                //       style:
+                //           AppTextStyles.bodyMedium(color: AppColors.textWhite),
+                //     ),
+                //   ),
+                // ),
                 Expanded(
                   child: StreamBuilder<List<ChatModel>>(
                     stream: messageService.getUserChats(currentUserId),

@@ -103,14 +103,22 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
 
-  void _navigateToHomeScreen({required UserType userType, required UserModel userModel}) {
-    if (userType == UserType.user) {
-      userStore.updateUserData(userModel);
-      Navigator.pushReplacementNamed(context, '/home');
-    } else {
-      userStore.updateUserData(userModel);
+  void _navigateToHomeScreen({required UserType userType, required UserModel userModel}) async{
+    userStore.updateUserData(userModel);
+    String s1=await PreferenceService.getVal(key: "user_mode",)??"";
+    if(s1=="astro"){
       Navigator.pushReplacementNamed(context, '/astrologer_home');
+    }else{
+      Navigator.pushReplacementNamed(context, '/home');
     }
+    // if (userType == UserType.user) {
+    //
+    //   userStore.updateUserData(userModel);
+    //   Navigator.pushReplacementNamed(context, '/home');
+    // } else {
+    //   userStore.updateUserData(userModel);
+    //   Navigator.pushReplacementNamed(context, '/astrologer_home');
+    // }
   }
 
   @override

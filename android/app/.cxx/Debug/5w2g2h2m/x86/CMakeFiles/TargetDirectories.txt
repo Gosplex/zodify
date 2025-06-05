@@ -1,0 +1,2 @@
+C:/Work/John/zodify/android/app/.cxx/Debug/5w2g2h2m/x86/CMakeFiles/edit_cache.dir
+C:/Work/John/zodify/android/app/.cxx/Debug/5w2g2h2m/x86/CMakeFiles/rebuild_cache.dir

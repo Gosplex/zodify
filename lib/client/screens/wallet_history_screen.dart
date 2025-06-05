@@ -14,6 +14,7 @@ import '../../main.dart';
 import '../../services/razorpay_service.dart';
 import '../../services/wallet_services.dart';
 import '../model/wallet_transaction_model.dart';
+import 'add_money_screen.dart';
 
 class WalletHistoryScreen extends StatefulWidget {
   const WalletHistoryScreen({super.key});
@@ -59,130 +60,130 @@ class _WalletHistoryScreenState extends State<WalletHistoryScreen> {
         .toList();
   }
 
-  void _showFundWalletDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        insetPadding: const EdgeInsets.symmetric(horizontal: 20),
-        backgroundColor: AppColors.primaryDark.withOpacity(0.95),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: AppColors.zodiacGold, width: 1),
-        ),
-        title: Row(
-          children: [
-            Icon(Icons.account_balance_wallet, color: AppColors.zodiacGold),
-            const SizedBox(width: 12),
-            Text(
-              'Fund Your Zodify Wallet',
-              style: AppTextStyles.heading2(color: AppColors.textWhite),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: amountController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                prefixText: '₹ ',
-                prefixStyle: AppTextStyles.bodyMedium(
-                  color: AppColors.textWhite,
-                  fontWeight: FontWeight.bold,
-                ),
-                hintText: 'Enter amount',
-                hintStyle:
-                    AppTextStyles.bodyMedium(color: AppColors.textWhite70),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide:
-                      BorderSide(color: AppColors.zodiacGold.withOpacity(0.5)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: AppColors.zodiacGold),
-                ),
-                filled: true,
-                fillColor: AppColors.primaryDark.withOpacity(0.7),
-              ),
-              style: AppTextStyles.bodyMedium(color: AppColors.textWhite),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: TextButton(
-                    onPressed: () {
-                      amountController.clear();
-                      Navigator.pop(context);
-                    },
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: BorderSide(color: AppColors.zodiacGold),
-                    ),
-                    child: Text(
-                      'Cancel',
-                      style:
-                          AppTextStyles.bodyMedium(color: AppColors.zodiacGold),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      FocusScope.of(context).unfocus();
-
-                      final amount =
-                          double.tryParse(amountController.text) ?? 0;
-                      if (amount >= 100) {
-                        // Minimum amount check
-                        _razorpayService.initPaymentGateway(
-                          amount: amount,
-                          onSuccess: (paymentId) async {
-                            await walletService
-                                .updateWalletBalance(amount, paymentId)
-                                .whenComplete(
-                              () {
-                                setState(() {
-                                  _transactions = _fetchTransactions();
-                                });
-                                amountController.clear();
-                                Navigator.pop(context);
-                                CommonUtilities.showSuccess(context, 'Wallet funded successfully');
-                              },
-                            );
-                          },
-                          onError: (error) {
-                            CommonUtilities.showError(context, error);
-                          },
-                        );
-                      } else {
-                        CommonUtilities.showError(
-                            context, 'Minimum amount is ₹100');
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.zodiacGold,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    child: Text(
-                      'Continue',
-                      style: AppTextStyles.bodyMedium(
-                        color: AppColors.textWhite,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // void _showFundWalletDialog() {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+  //       backgroundColor: AppColors.primaryDark.withOpacity(0.95),
+  //       shape: RoundedRectangleBorder(
+  //         borderRadius: BorderRadius.circular(16),
+  //         side: BorderSide(color: AppColors.zodiacGold, width: 1),
+  //       ),
+  //       title: Row(
+  //         children: [
+  //           Icon(Icons.account_balance_wallet, color: AppColors.zodiacGold),
+  //           const SizedBox(width: 12),
+  //           Text(
+  //             'Fund Your Zodify Wallet',
+  //             style: AppTextStyles.heading2(color: AppColors.textWhite),
+  //           ),
+  //         ],
+  //       ),
+  //       content: Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: [
+  //           TextField(
+  //             controller: amountController,
+  //             keyboardType: TextInputType.number,
+  //             decoration: InputDecoration(
+  //               prefixText: '₹ ',
+  //               prefixStyle: AppTextStyles.bodyMedium(
+  //                 color: AppColors.textWhite,
+  //                 fontWeight: FontWeight.bold,
+  //               ),
+  //               hintText: 'Enter amount',
+  //               hintStyle:
+  //                   AppTextStyles.bodyMedium(color: AppColors.textWhite70),
+  //               border: OutlineInputBorder(
+  //                 borderRadius: BorderRadius.circular(10),
+  //                 borderSide:
+  //                     BorderSide(color: AppColors.zodiacGold.withOpacity(0.5)),
+  //               ),
+  //               focusedBorder: OutlineInputBorder(
+  //                 borderRadius: BorderRadius.circular(10),
+  //                 borderSide: BorderSide(color: AppColors.zodiacGold),
+  //               ),
+  //               filled: true,
+  //               fillColor: AppColors.primaryDark.withOpacity(0.7),
+  //             ),
+  //             style: AppTextStyles.bodyMedium(color: AppColors.textWhite),
+  //           ),
+  //           const SizedBox(height: 20),
+  //           Row(
+  //             children: [
+  //               Expanded(
+  //                 child: TextButton(
+  //                   onPressed: () {
+  //                     amountController.clear();
+  //                     Navigator.pop(context);
+  //                   },
+  //                   style: TextButton.styleFrom(
+  //                     padding: const EdgeInsets.symmetric(vertical: 14),
+  //                     side: BorderSide(color: AppColors.zodiacGold),
+  //                   ),
+  //                   child: Text(
+  //                     'Cancel',
+  //                     style:
+  //                         AppTextStyles.bodyMedium(color: AppColors.zodiacGold),
+  //                   ),
+  //                 ),
+  //               ),
+  //               const SizedBox(width: 16),
+  //               Expanded(
+  //                 child: ElevatedButton(
+  //                   onPressed: () {
+  //                     FocusScope.of(context).unfocus();
+  //
+  //                     final amount =
+  //                         double.tryParse(amountController.text) ?? 0;
+  //                     if (amount >= 100) {
+  //                       // Minimum amount check
+  //                       _razorpayService.initPaymentGateway(
+  //                         amount: amount,
+  //                         onSuccess: (paymentId) async {
+  //                           await walletService
+  //                               .updateWalletBalance(amount, paymentId)
+  //                               .whenComplete(
+  //                             () {
+  //                               setState(() {
+  //                                 _transactions = _fetchTransactions();
+  //                               });
+  //                               amountController.clear();
+  //                               Navigator.pop(context);
+  //                               CommonUtilities.showSuccess(context, 'Wallet funded successfully');
+  //                             },
+  //                           );
+  //                         },
+  //                         onError: (error) {
+  //                           CommonUtilities.showError(context, error);
+  //                         },
+  //                       );
+  //                     } else {
+  //                       CommonUtilities.showError(
+  //                           context, 'Minimum amount is ₹100');
+  //                     }
+  //                   },
+  //                   style: ElevatedButton.styleFrom(
+  //                     backgroundColor: AppColors.zodiacGold,
+  //                     padding: const EdgeInsets.symmetric(vertical: 14),
+  //                   ),
+  //                   child: Text(
+  //                     'Continue',
+  //                     style: AppTextStyles.bodyMedium(
+  //                       color: AppColors.textWhite,
+  //                       fontWeight: FontWeight.bold,
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -207,7 +208,9 @@ class _WalletHistoryScreenState extends State<WalletHistoryScreen> {
         centerTitle: true,
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showFundWalletDialog,
+        onPressed: () {
+          Navigator.push(context, MaterialPageRoute(builder: (context) => AddMoneyScreen(),));
+        },
         backgroundColor: AppColors.zodiacGold,
         child: const FaIcon(
           FontAwesomeIcons.plus,

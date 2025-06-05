@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:astrology_app/client/screens/user_dashboard_screen.dart';
 import 'package:astrology_app/common/extensions/string_extensions.dart';
 import 'package:astrology_app/common/screens/chat_message_screen.dart';
 import 'package:astrology_app/common/utils/app_text_styles.dart';
@@ -165,6 +166,7 @@ class _UserChatWaitingScreenState extends State<UserChatWaitingScreen> {
                     ),
                     onPressed: () {
                       // Navigate to astrologer listing
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => UserDashboardScreen(),));
                     },
                     child: Text(
                       'Browse Astrologers',

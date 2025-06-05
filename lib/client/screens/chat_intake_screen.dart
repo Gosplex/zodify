@@ -34,9 +34,8 @@ class _ChatIntakeFormScreenState extends State<ChatIntakeFormScreen> {
   final MessageService _messageService = MessageService();
   var _searchCityController=TextEditingController();
   var cityList=[];
-
-  String? _selectedGender;
   String? _birthPlace;
+  String? _selectedGender;
   String? _selectedRelationshipStatus;
   bool _knowsBirthTime = true;
   bool _isLoading = false;
@@ -52,7 +51,11 @@ class _ChatIntakeFormScreenState extends State<ChatIntakeFormScreen> {
     }catch(e){
 
     }
-    _dobController.text = DateFormat('MMMM d, y').format(DateTime.parse(userStore.user!.birthDate!));
+    try{
+      _dobController.text = DateFormat('MMMM d, y').format(DateTime.parse(userStore.user!.birthDate!));
+    }catch(e){
+
+    }
     _tobController.text = userStore.user!.birthTime??'';
     _knowsBirthTime = userStore.user!.birthTime != null ? true : false;
     _selectedGender = userStore.user!.gender;
@@ -149,6 +152,7 @@ class _ChatIntakeFormScreenState extends State<ChatIntakeFormScreen> {
         topic: _topicController.text,
       );
 
+      await _chatRequestService.removeOldChat(userStore?.user?.id??"");
       if (requestId == null) {
         throw Exception('Failed to create chat request');
       }

@@ -1,15 +1,26 @@
+import 'package:astrology_app/client/screens/wallet_history_screen.dart';
 import 'package:astrology_app/common/utils/colors.dart';
 import 'package:astrology_app/common/utils/images.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../common/utils/common.dart';
+import '../../main.dart';
+import '../../services/razorpay_service.dart';
+import '../../services/wallet_services.dart';
+
 class AddMoneyScreen extends StatelessWidget {
+  var customAmountController=TextEditingController();
+  final _razorpayService = RazorpayService();
+  final walletService = WalletService(
+    firestore: FirebaseFirestore.instance,
+    auth: FirebaseAuth.instance,
+    userStore: userStore,
+  );
   final List<AmountOption> options = [
     AmountOption(25, ),
-    AmountOption(50, ),
     AmountOption(100, isPopular: true),
-    AmountOption(200, ),
-    AmountOption(250, ),
-    AmountOption(500, ),
   ];
 
   @override
@@ -47,11 +58,11 @@ class AddMoneyScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              const Align(
+              Align(
                 alignment: Alignment.centerLeft,
                 child:
                 Text(
-                  "₹ 0",
+                  "₹ ${userStore?.user?.walletBalance??"0"}",
                   style: TextStyle(fontSize: 24,color: Colors.white, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -63,11 +74,16 @@ class AddMoneyScreen extends StatelessWidget {
                   childAspectRatio: 1.5,
                   crossAxisSpacing: 10,
                   mainAxisSpacing: 10,
-                  children: options.map((option) => AmountCard(option)).toList(),
+                  children: options.map((option) => GestureDetector(
+                      onTap: (){
+                        executePayment(context,money:option.amount.toDouble());
+                      },
+                      child: AmountCard(option))).toList(),
                 ),
               ),
               const SizedBox(height: 16),
               TextField(
+                controller: customAmountController,
                 cursorColor: AppColors.primaryLight,
                 style: TextStyle(color: Colors.white),
                 decoration: InputDecoration(
@@ -95,14 +111,58 @@ class AddMoneyScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12)
                 ),
                 color: AppColors.primaryLight,
-                onPressed: () {  }, child: Text("Continue",style: TextStyle(color: AppColors.textWhite,fontSize: 16,fontWeight: FontWeight.w900),),)
+                onPressed: () {
+                  double money=double.tryParse(customAmountController.text)??0;
+                  executePayment(context,money:money);
+                }, child: Text("Continue",style: TextStyle(color: AppColors.textWhite,fontSize: 16,fontWeight: FontWeight.w900),),)
             ],
           ),
         ),
       ),
     );
   }
+
+  void executePayment(BuildContext context, {required double money}) {
+    if (money >= 0) {
+      // Minimum amount check
+      _razorpayService.initPaymentGateway(
+        amount: money,
+        onSuccess: (paymentId) async {
+          await walletService
+              .updateWalletBalance(money, paymentId)
+              .whenComplete(
+                () {
+              whenPaymentIsCompleted(context,amount: money);
+            },
+          );
+        },
+        onError: (error) {
+          CommonUtilities.showError(context, error);
+        },
+      );
+    } else {
+      CommonUtilities.showError(
+          context, 'Enter Valid Amount');
+    }
+  }
+
+  void whenPaymentIsCompleted(BuildContext context,{required double amount}) {
+    Navigator.pop(context);
+    CommonUtilities.removeLoader(context);
+    CommonUtilities.showSuccess(
+      context,
+      '₹${amount.toStringAsFixed(2)} added to wallet!',
+    );
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (context) {
+        return WalletHistoryScreen();
+      },
+    ));
+  }
+
 }
+
+
 
 class AmountOption {
   final int amount;

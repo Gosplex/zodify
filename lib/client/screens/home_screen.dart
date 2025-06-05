@@ -1,10 +1,12 @@
 import 'package:astrology_app/client/screens/user_profile_screen.dart';
+import 'package:astrology_app/client/screens/wallet_history_screen.dart';
 import 'package:astrology_app/common/utils/constants.dart';
 import 'package:astrology_app/services/user_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:lottie/lottie.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../astrologer/screens/astrologer_profile_screen.dart';
@@ -19,7 +21,9 @@ import '../../services/auth_services.dart';
 import '../../services/message_service.dart';
 import '../../services/notification_service.dart';
 import '../model/user_model.dart';
+import 'add_money_screen.dart';
 import 'astrologer_list_screen.dart';
+import 'chat_intake_screen.dart';
 
 class HomeScreen extends StatefulWidget {
    HomeScreen({super.key});
@@ -95,6 +99,33 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         centerTitle: true,
         actions: [
+          GestureDetector(
+            onTap: () {
+              // Navigator.push(context, MaterialPageRoute(builder: (context) => AddMoneyScreen(),));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => WalletHistoryScreen(),));
+            },
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 8),
+              decoration: BoxDecoration(
+                color: Colors.white60,
+                border: Border.all(color: Colors.white,),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: EdgeInsets.all(4),
+              child: Row(
+                spacing: 2,
+                children: [
+                  Icon(Icons.wallet,size:14,color:AppColors.primary),
+                  Padding(
+                    padding:EdgeInsets.symmetric(horizontal: 4.0),
+                    child: Text(true?CommonUtilities.formatCurrency(
+                        userStore.user?.walletBalance):"₹ ${userStore.user?.walletBalance}",style: TextStyle(fontSize: 12,fontWeight: FontWeight.bold),),
+                  ),
+                  Icon(Icons.add_circle,size:14,color:AppColors.primary)
+                ],
+              ),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: GestureDetector(
@@ -151,114 +182,197 @@ class _HomeScreenState extends State<HomeScreen> {
                 final requests = snapshot.data!.docs;
                 String name=requests[0].data()['astrologerName']??'Astrologer-XYZ';
                 String currentStatus=requests[0].data()['status']??'Astrologer-XYZ';
-                return Container(
-                  padding: const EdgeInsets.all(12),
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFF8E1), // Light yellow background
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 24,
-                        backgroundColor: Colors.yellow[700],
-                        child: const Icon(Icons.person, size: 30, color: Colors.brown),
+                return Stack(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF8E1), // Light yellow background
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text("$name",
-                                style: const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 4),
-                            Text(
-                                currentStatus=="accepted"?"Start Chat":
-                                "Waiting To Astrologer Accept.",
-                                style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.green,
-                                    fontWeight: FontWeight.w500)),
-                          ],
-                        ),
-                      ),
-                      OutlinedButton(
-                        onPressed: (){
-                          print("CheckData CHAT REQ::${requests[0].data()}");
-                          if(requests[0].data()['status']=="accepted"){
-                            MessageService messageService =
-                            MessageService();
-                            final chatId =
-                            messageService.generateChatId(
-                                userStore.user!.id!, requests[0].data()['astrologerId']);
-                            Navigator.of(context)
-                                .push(MaterialPageRoute(
-                              builder: (context) {
-                                return ChatMessageScreen(
-                                    chatId: chatId, receiverId: requests[0].data()['astrologerId']);
-                              },
-                            ));
-                          }else{
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Waiting For Astrologer to accept your chat request')),
-                            );
-                          }
-                        },
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Colors.blue, width: 2),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 24,
+                            backgroundColor: Colors.yellow[700],
+                            child: const Icon(Icons.person, size: 30, color: Colors.brown),
                           ),
-                          padding:
-                          const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text("$name",
+                                    style: const TextStyle(
+                                        fontSize: 16, fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 4),
+                                Text(
+                                    currentStatus=="accepted"?"Start Chat":
+                                    "Waiting To Astrologer Accept.",
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.green,
+                                        fontWeight: FontWeight.w500)),
+                              ],
+                            ),
+                          ),
+                          OutlinedButton(
+                            onPressed: (){
+                              print("CheckData CHAT REQ::${requests[0].data()}");
+                              if(requests[0].data()['status']=="accepted"){
+                                MessageService messageService =
+                                MessageService();
+                                final chatId =
+                                messageService.generateChatId(
+                                    userStore.user!.id!, requests[0].data()['astrologerId']);
+                                Navigator.of(context)
+                                    .push(MaterialPageRoute(
+                                  builder: (context) {
+                                    return ChatMessageScreen(
+                                        chatId: chatId, receiverId: requests[0].data()['astrologerId']);
+                                  },
+                                ));
+                              }else{
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Waiting For Astrologer to accept your chat request')),
+                                );
+                              }
+                            },
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Colors.blue, width: 2),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              padding:
+                              const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                            ),
+                            child: const Text("Chat",
+                                style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w600)),
+                          )
+                        ],
+                      ),
+                    ),
+                    Positioned(
+                        child:Container(
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(color: Colors.grey,width: 1.5),
+                              shape: BoxShape.circle
+                          ),
+                          child: Lottie.asset(
+                            "assets/animations/alert.json",
+                            width: 24,
+                            height: 24,
+                          ),
                         ),
-                        child: const Text("Chat",
-                            style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w600)),
-                      )
-                    ],
-                  ),
+                        top:0,
+                        right:10
+                    )
+                  ],
                 );
               },),
 
               // Semi-transparent search bar
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              // Padding(
+              //   padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              //   child: Container(
+              //     decoration: BoxDecoration(
+              //       color: backgroundWhiteOpacity,
+              //       borderRadius: BorderRadius.circular(10),
+              //       border: Border.all(
+              //         color: Colors.white.withOpacity(0.3),
+              //         width: 1,
+              //       ),
+              //     ),
+              //     child: TextField(
+              //       style: AppTextStyles.bodyMedium(color: Colors.white),
+              //       decoration: InputDecoration(
+              //         hintText: 'Search astrologers, horoscopes...',
+              //         hintStyle: AppTextStyles.bodyMedium(
+              //           color: Colors.white.withOpacity(0.7),
+              //         ),
+              //         suffixIcon: Icon(
+              //           FontAwesomeIcons.search,
+              //           size: 24,
+              //           color: Colors.white.withOpacity(0.7),
+              //         ),
+              //         border: InputBorder.none,
+              //         contentPadding: const EdgeInsets.symmetric(
+              //           vertical: 16,
+              //           horizontal: 20,
+              //         ),
+              //       ),
+              //     ),
+              //   ),
+              // ),
+
+              SizedBox(height: 12,),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => ChatHistoryScreen(),));
+                },
                 child: Container(
+                  margin: EdgeInsets.symmetric(horizontal: 24,vertical: 0),
+                  padding: EdgeInsets.all(8),
+                  width: double.infinity,
                   decoration: BoxDecoration(
-                    color: backgroundWhiteOpacity,
-                    borderRadius: BorderRadius.circular(10),
+                    color: Colors.blueGrey.withOpacity(0.2), // Semi-transparent fill
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.3),
-                      width: 1,
+                      color: Colors.blueGrey.withOpacity(0.5),
+                      width: 1.5,
                     ),
                   ),
-                  child: TextField(
-                    style: AppTextStyles.bodyMedium(color: Colors.white),
-                    decoration: InputDecoration(
-                      hintText: 'Search astrologers, horoscopes...',
-                      hintStyle: AppTextStyles.bodyMedium(
-                        color: Colors.white.withOpacity(0.7),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      // Circular Icon Container with matching color
+                      Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.blueGrey.withOpacity(0.3), // More transparent version
+                          border: Border.all(
+                            color: Colors.blueGrey,
+                            width: 2,
+                          ),
+                        ),
+                        child: Icon(
+                            FontAwesomeIcons.comments,
+                          size: 30,
+                          color: Colors.white,
+                        ),
                       ),
-                      suffixIcon: Icon(
-                        FontAwesomeIcons.search,
-                        size: 24,
-                        color: Colors.white.withOpacity(0.7),
+                       SizedBox(width: 16),
+                      // Feature Name with colored background
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: Colors.blueGrey.withOpacity(0.7),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Center(
+                            child: Text(
+                              "Chat History",
+                              style: AppTextStyles.bodyMedium(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 16,
-                        horizontal: 20,
-                      ),
-                    ),
+                    ],
                   ),
                 ),
               ),
-
               // Live Astrologers Header
               Padding(
-                padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -569,13 +683,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Navigate to profile screen
               },
             ),
-            ListTile(
-              leading: Icon(Icons.history, color: Colors.white),
-              title: Text('Chat History', style: TextStyle(color: Colors.white)),
-              onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => ChatHistoryScreen(),));
-              },
-            ),
+            // ListTile(
+            //   leading: Icon(Icons.history, color: Colors.white),
+            //   title: Text('Swith to', style: TextStyle(color: Colors.white)),
+            //   onTap: () {
+            //     Navigator.push(context, MaterialPageRoute(builder: (context) => ChatHistoryScreen(),));
+            //   },
+            // ),
             ListTile(
               leading: Icon(Icons.logout, color: Colors.white),
               title: Text('Logout', style: TextStyle(color: Colors.white)),
@@ -731,7 +845,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            // Add navigation or chat logic here
+                            Navigator.of(context)
+                                .push(MaterialPageRoute(
+                              builder: (context) {
+                                return ChatIntakeFormScreen(astrologerDetails: astrologer,);
+                              },
+                            ));
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white.withOpacity(0.3),

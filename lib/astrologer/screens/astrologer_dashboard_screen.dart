@@ -20,7 +20,8 @@ class _AstrologerDashboardScreenState extends State<AstrologerDashboardScreen> {
 
   final List<Widget> _screens = [
     const HomeScreen(),
-    const ChatListScreen(), // Placeholder for Chat screen
+    // const ChatListScreen(), // Placeholder for Chat screen
+    const SizedBox(), // Placeholder for Live screen
     const SizedBox(), // Placeholder for Live screen
     const SizedBox(), // Placeholder for Calls screen
   ];

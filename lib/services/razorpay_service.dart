@@ -20,7 +20,7 @@ class RazorpayService {
     _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
 
     var options = {
-      'key': 'rzp_test_CLw7tH3O3P5eQM',
+        'key': 'rzp_test_CLw7tH3O3P5eQM',
       'amount': (amount * 100).toInt(),
       'name': 'Zodify App',
       'description': 'Wallet Top-up',
@@ -46,7 +46,6 @@ class RazorpayService {
         'color': '#F37254',
       }
     };
-
     try {
       _razorpay.open(options);
     } catch (e) {

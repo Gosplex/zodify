@@ -142,6 +142,7 @@ class MessageService {
 
   /// Retrieves a stream of chats for a user (for ChatListScreen)
   Stream<List<ChatModel>> getUserChatsHistory(String userId) {
+    print("CheckCase1...$userId");
     return _firestore
         .collection("chat_history")
         .where('participants', arrayContains: userId)
