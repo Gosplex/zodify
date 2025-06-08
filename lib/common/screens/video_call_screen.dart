@@ -92,6 +92,8 @@ class _VideoCallingScreenState extends State<VideoCallingScreen> {
       await _agoraService.initialize(CallType.video);
       setState(() => _isInitialized = true);
 
+
+
       if (receiver?.fcmToken != null) {
         await _notificationService.sendCallNotification(
           receiverId: widget.receiverId,
@@ -103,6 +105,8 @@ class _VideoCallingScreenState extends State<VideoCallingScreen> {
           callerId: userStore.user!.id!,
           callType: CallType.video,
         );
+        debugPrint("Before remoteUserJoined");
+
       }
 
       debugPrint("Before remoteUserJoined");

@@ -119,6 +119,8 @@ class NotificationService {
                 ),
               );
             });
+          } else {
+            await NotificationService.onActionReceived(action);
           }
         },
       );
@@ -179,6 +181,7 @@ class NotificationService {
     required String action,
     String? callerName, // Added for VideoCallScreen
   }) async {
+    print("Notification Action called()");
     if (_navigatorKey == null) {
       debugPrint('Navigator key not available');
       return;
@@ -492,7 +495,7 @@ class NotificationService {
       final serviceAccountJson = await DefaultAssetBundle.of(
               WidgetsBinding.instance!.rootElement!)
           .loadString(
-              'assets/zodify-6ff17-firebase-adminsdk-fbsvc-5ec7753e9b.json');
+              'assets/zodify-6ff17-firebase-adminsdk-fbsvc-93837edb1e.json');
       final serviceAccount = jsonDecode(serviceAccountJson);
       final credentials = ServiceAccountCredentials.fromJson(serviceAccount);
       final client = await clientViaServiceAccount(
@@ -574,7 +577,7 @@ class NotificationService {
       final serviceAccountJson = await DefaultAssetBundle.of(
               WidgetsBinding.instance!.rootElement!)
           .loadString(
-              'assets/zodify-6ff17-firebase-adminsdk-fbsvc-5ec7753e9b.json');
+              'assets/zodify-6ff17-firebase-adminsdk-fbsvc-93837edb1e.json');
       final serviceAccount = jsonDecode(serviceAccountJson);
       final credentials = ServiceAccountCredentials.fromJson(serviceAccount);
       final client = await clientViaServiceAccount(
@@ -667,7 +670,7 @@ class NotificationService {
       final serviceAccountJson = await DefaultAssetBundle.of(
               WidgetsBinding.instance!.rootElement!)
           .loadString(
-              'assets/zodify-6ff17-firebase-adminsdk-fbsvc-5ec7753e9b.json');
+              'assets/zodify-6ff17-firebase-adminsdk-fbsvc-93837edb1e.json');
       final serviceAccount = jsonDecode(serviceAccountJson);
       final credentials = ServiceAccountCredentials.fromJson(serviceAccount);
       final client = await clientViaServiceAccount(
@@ -762,7 +765,7 @@ class NotificationService {
       final serviceAccountJson = await DefaultAssetBundle.of(
               WidgetsBinding.instance!.rootElement!)
           .loadString(
-              'assets/zodify-6ff17-firebase-adminsdk-fbsvc-5ec7753e9b.json');
+              'assets/zodify-6ff17-firebase-adminsdk-fbsvc-93837edb1e.json');
       final serviceAccount = jsonDecode(serviceAccountJson);
       final credentials = ServiceAccountCredentials.fromJson(serviceAccount);
       final client = await clientViaServiceAccount(

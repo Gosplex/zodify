@@ -56,18 +56,21 @@ class _OngoingVideoCallScreenState extends State<OngoingVideoCallScreen> {
       }
     });
 
-    _agoraService.remoteUserJoined.listen((joined) {
-      debugPrint('remoteUserJoined event: $joined');
-      if (mounted) {
-        setState(() {
-          _remoteUserJoined = joined;
-          debugPrint('Updated _remoteUserJoined: $_remoteUserJoined');
-        });
-        if (!joined) {
-          Navigator.pop(context);
-        }
-      }
-    });
+    _remoteUserJoined = true;
+
+
+    // _agoraService.remoteUserJoined.listen((joined) {
+    //   debugPrint('remoteUserJoined event: $joined');
+    //   if (mounted) {
+    //     setState(() {
+    //       _remoteUserJoined = joined;
+    //       debugPrint('Updated _remoteUserJoined: $_remoteUserJoined');
+    //     });
+    //     if (!joined) {
+    //       Navigator.pop(context);
+    //     }
+    //   }
+    // });
 
     _agoraService.remoteVideoStream.listen((videoState) {
       debugPrint('remoteVideoStream event: $videoState');
