@@ -30,7 +30,7 @@ class AgoraService {
   final _remoteUserJoinedController = StreamController<bool>.broadcast();
   final _callDurationController = StreamController<Duration>.broadcast();
   final _remoteVideoStreamController =
-      StreamController<Map<int, bool>>.broadcast();
+  StreamController<Map<int, bool>>.broadcast();
   Timer? _durationTimer;
   Duration _callDuration = Duration.zero;
   final CallHistoryService _callHistoryService = CallHistoryService();
@@ -50,6 +50,12 @@ class AgoraService {
       _remoteVideoStreamController.stream;
 
   bool get isCaller => _isCaller;
+
+  void updateRemoteVideoStream(int remoteUid, bool videoEnabled) {
+    debugPrint('Updating remote video stream: UID=$remoteUid, VideoEnabled=$videoEnabled');
+    _remoteVideoStreamController.add({remoteUid: videoEnabled});
+  }
+
 
   // Your Agora App ID
   static const String appId = '2a536a0b8d1f4270b7ee8606e5c5ca1c';
@@ -109,14 +115,20 @@ class AgoraService {
             debugPrint(
                 'Remote user joineddddd: $remoteUid, localId === ${connection.localUid}');
             _remoteUserJoinedController.add(true);
-            _remoteVideoStreamController.add({remoteUid: false});
+            if (callType == CallType.video) {
+              updateRemoteVideoStream(remoteUid, true);
+            }
+
             _startCallDurationTimer();
           },
           onUserOffline: (RtcConnection connection, int remoteUid,
               UserOfflineReasonType reason) {
             debugPrint('Remote user offline: $remoteUid, reason: $reason');
             _remoteUserJoinedController.add(false);
-            _remoteVideoStreamController.add({remoteUid: false});
+            if (callType == CallType.video) {
+              updateRemoteVideoStream(remoteUid, false);
+            }
+
             _stopCallDurationTimer();
             if (currentUserId == null ||
                 receiverUserId == null ||
@@ -152,7 +164,8 @@ class AgoraService {
 
             print("isVideoOn  === $isVideoOn");
             // _remoteUserJoinedController.add(isVideoOn);
-            _remoteVideoStreamController.add({remoteUid: isVideoOn});
+            updateRemoteVideoStream(remoteUid, isVideoOn);
+            // _remoteVideoStreamController.add({remoteUid: isVideoOn});
           },
         ),
       );
@@ -175,11 +188,11 @@ class AgoraService {
   }
 
   Future<void> joinCall(
-    String channelName,
-    String userId,
-    CallType callType, {
-    String? token,
-  }) async {
+      String channelName,
+      String userId,
+      CallType callType, {
+        String? token,
+      }) async {
     if (_engine == null) {
       await initialize(callType);
     }

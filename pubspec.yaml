@@ -64,6 +64,8 @@ dependencies:
 # VIDEO/AUDIO CALL
   agora_rtc_engine: ^6.5.1
 
+  rxdart: ^0.28.0
+
 
 dev_dependencies:
   flutter_test:
@@ -91,7 +93,7 @@ flutter:
      - assets/animations/call_denied.json
      - assets/audio/phone_call_beep.mp3
      - assets/audio/notification.wav
-     - assets/zodify-6ff17-firebase-adminsdk-fbsvc-5ec7753e9b.json
+     - assets/zodify-6ff17-firebase-adminsdk-fbsvc-93837edb1e.json
 #     - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
