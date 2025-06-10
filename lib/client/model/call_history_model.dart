@@ -1,6 +1,7 @@
 class CallHistory {
   final String id;
   final String callerId;
+  final String callerName;
   final String receiverId;
   final String channelName;
   final String callType;
@@ -11,6 +12,7 @@ class CallHistory {
   CallHistory({
     required this.id,
     required this.callerId,
+    required this.callerName,
     required this.receiverId,
     required this.channelName,
     required this.callType,
@@ -23,6 +25,7 @@ class CallHistory {
     return {
       'id': id,
       'callerId': callerId,
+      'callerName': callerName,
       'receiverId': receiverId,
       'channelName': channelName,
       'callType': callType,
@@ -36,6 +39,7 @@ class CallHistory {
     return CallHistory(
       id: map['id'],
       callerId: map['callerId'],
+      callerName: map['callerName'],
       receiverId: map['receiverId'],
       channelName: map['channelName'],
       callType: map['callType'],

@@ -19,6 +19,7 @@ class CallHistoryService {
 
   Future<void> saveCallHistory({
     required String callerId,
+    required String callerName,
     required String receiverId,
     required String channelName,
     required String callType,
@@ -42,6 +43,7 @@ class CallHistoryService {
       final callHistory = CallHistory(
         id: callId,
         callerId: callerId,
+        callerName: callerName,
         receiverId: receiverId,
         channelName: channelName,
         callType: callType,

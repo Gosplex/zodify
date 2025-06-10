@@ -43,10 +43,10 @@ class _VideoCallingScreenState extends State<VideoCallingScreen> {
   @override
   void initState() {
     super.initState();
-    print("CheckData::::${widget.channelName}");
-    print("CheckData::::${widget.receiverId}");
-    print("CheckData::::${widget.receiverImageUrl}");
-    print("CheckData::::${widget.key}");
+    // print("CheckData::::${widget.channelName}");
+    // print("CheckData::::${widget.receiverId}");
+    // print("CheckData::::${widget.receiverImageUrl}");
+    // print("CheckData::::${widget.key}");
     _initializeCall();
     _startTimer();
     _timeoutTimer = Timer(const Duration(seconds: 30), () {
@@ -160,6 +160,7 @@ class _VideoCallingScreenState extends State<VideoCallingScreen> {
       });
       _callHistoryService.saveCallHistory(
         callerId: userStore.user!.id!,
+        callerName: userStore.user!.name!,
         receiverId: widget.receiverId,
         channelName: widget.channelName,
         callType: 'video',
@@ -192,6 +193,7 @@ class _VideoCallingScreenState extends State<VideoCallingScreen> {
     await _cleanupResources();
     await _callHistoryService.saveCallHistory(
       callerId: userStore.user!.id!,
+      callerName: userStore.user!.name!,
       receiverId: widget.receiverId,
       channelName: widget.channelName,
       callType: 'video',

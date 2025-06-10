@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
@@ -70,6 +71,7 @@ class AgoraService {
         await _engine!.disableVideo();
         await _engine!.disableAudio();
         _engine!.unregisterEventHandler(RtcEngineEventHandler());
+
         await _engine!.release(sync: true);
         debugPrint('Agora engine released successfully');
       } catch (e) {
@@ -136,15 +138,24 @@ class AgoraService {
               debugPrint('Error: Missing required fields for call history');
               return;
             }
+            FirebaseFirestore.instance.collection("users").where("id",isEqualTo: currentUserId).get().then((value) {
+              String s1="";
+              try{
+                s1=value.docs.first.data()['name'];
+              }catch(e){
+                s1="Guest User";
+              }
+              _callHistoryService.saveCallHistory(
+                callerId: currentUserId!,
+                callerName: s1,
+                receiverId: receiverUserId!,
+                channelName: currentChannel!,
+                callType: _isVideoEnabled ? 'video' : 'voice',
+                status: 'ended',
+                durationSeconds: _callDuration.inSeconds,
+              );
+            },);
             print("CALL ENDED");
-            _callHistoryService.saveCallHistory(
-              callerId: currentUserId!,
-              receiverId: receiverUserId!,
-              channelName: currentChannel!,
-              callType: _isVideoEnabled ? 'video' : 'voice',
-              status: 'ended',
-              durationSeconds: _callDuration.inSeconds,
-            );
           },
           onError: (ErrorCodeType err, String msg) {
             debugPrint('Agora error: $err, $msg');
@@ -306,9 +317,12 @@ class AgoraService {
   }
 
   void toggleVideo() {
-    if (_engine == null || !_isVideoEnabled) return;
-    _engine!.enableLocalVideo(!_isVideoEnabled);
-    debugPrint('Video toggled: $_isVideoEnabled');
+    if (_engine == null) return;
+    _isVideoEnabled = !_isVideoEnabled;
+    _engine!.muteLocalVideoStream(!_isVideoEnabled);
+    // if (_engine == null || !_isVideoEnabled) return;
+    // _engine!.enableLocalVideo(!_isVideoEnabled);
+    // debugPrint('Video toggled: $_isVideoEnabled');
   }
 
   void switchCamera() {

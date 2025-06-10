@@ -9,11 +9,16 @@ class ChatRequestService {
 
   // Save a chat request to Firestore
   Future<String?> saveChatRequest(ChatRequest chatRequest) async {
+    print("createChatRequest.called12:saveChatRequest");
     try {
+      print("createChatRequest.called12:saveChatRequest14");
       final docRef = _firestore.collection(_collectionPath).doc(chatRequest.id);
+      print("createChatRequest.called12:saveChatRequest16");
       await docRef.set(chatRequest.toJson());
+      print("createChatRequest.called12:saveChatRequest18");
       return chatRequest.id;
-    } catch (e) {
+    } catch (e,s) {
+      print("createChatRequest.called12:saveChatRequest:::21 ERR:::$e ==>$s");
       print('Error saving chat request: $e');
       return null;
     }
@@ -49,12 +54,13 @@ class ChatRequestService {
     required String occupation,
     required String topic,
   }) async {
+    print("createChatRequest.called");
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) {
       print('Error: User not authenticated');
       return null;
     }
-
+    print("createChatRequest.called58");
     final chatRequest = ChatRequest(
       id: _firestore.collection(_collectionPath).doc().id,
       userId: userId,
@@ -72,6 +78,7 @@ class ChatRequestService {
       status: 'pending',
       createdAt: DateTime.now(),
     );
+    print("createChatRequest.called76");
 
     return await saveChatRequest(chatRequest);
   }

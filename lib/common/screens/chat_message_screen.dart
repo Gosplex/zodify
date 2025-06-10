@@ -200,526 +200,528 @@ class _ChatMessageScreenState extends State<ChatMessageScreen> {
         return true;
       }
       },
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: AppColors.primaryDark.withOpacity(0.8),
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppColors.textWhite),
-            onPressed: () => Navigator.pop(context),
-          ),
-          title: FutureBuilder<UserModel?>(
-            future: _userService.getUserDetails(widget.receiverId),
-            builder: (context, snapshot) {
-              String userName = 'Astrologer';
-              bool isOnline = false;
-              if (snapshot.connectionState == ConnectionState.done &&
-                  snapshot.hasData) {
-                userName = snapshot.data!.name!;
-                imageUrl = snapshot.data?.userProfile ??snapshot.data?.userProfile?? "";
-                isOnline = snapshot.data!.isOnline ?? false;
-              }
-              print("");
-              return Row(
-                children: [
-                  CircleAvatar(
-                    radius: 18,
-                    backgroundColor: AppColors.primaryLight,
-                    backgroundImage: imageUrl != null
-                        ? NetworkImage(imageUrl!)
-                        : AssetImage(AppImages.ic_male),
-                    child: imageUrl == null
-                        ? const FaIcon(
-                      FontAwesomeIcons.userAstronaut,
-                      color: AppColors.zodiacGold,
-                      size: 16,
-                    )
-                        : null,
+      child: SafeArea(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(
+            backgroundColor: AppColors.primaryDark.withOpacity(0.8),
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: AppColors.textWhite),
+              onPressed: () => Navigator.pop(context),
+            ),
+            title: FutureBuilder<UserModel?>(
+              future: _userService.getUserDetails(widget.receiverId),
+              builder: (context, snapshot) {
+                String userName = 'Astrologer';
+                bool isOnline = false;
+                if (snapshot.connectionState == ConnectionState.done &&
+                    snapshot.hasData) {
+                  userName = snapshot.data!.name!;
+                  imageUrl = snapshot.data?.userProfile ??snapshot.data?.userProfile?? "";
+                  isOnline = snapshot.data!.isOnline ?? false;
+                }
+                print("");
+                return Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 18,
+                      backgroundColor: AppColors.primaryLight,
+                      backgroundImage: imageUrl != null
+                          ? NetworkImage(imageUrl!)
+                          : AssetImage(AppImages.ic_male),
+                      child: imageUrl == null
+                          ? const FaIcon(
+                        FontAwesomeIcons.userAstronaut,
+                        color: AppColors.zodiacGold,
+                        size: 16,
+                      )
+                          : null,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            userName,
+                            style: AppTextStyles.bodyMedium(
+                              color: AppColors.textWhite,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            isOnline ? 'Online' : 'Offline',
+                            style: AppTextStyles.captionText(
+                              color: isOnline
+                                  ? AppColors.successGreen
+                                  : AppColors.textWhite70,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+            actions: widget.isHistoryMode==true?[]:[
+              // if(userStore.user?.astrologerProfile==null)
+              IconButton(onPressed: (){
+                showDialog<bool>(
+                  context: context,
+                  barrierDismissible: false, // Force the user to choose an option
+                  builder: (context) => AlertDialog(
+                    title: const Text('Close Session'),
+                    content: const Text('Are you sure you want to close this session?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false), // Cancel
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                        ),
+                        onPressed: () async{
+                          // Start Delete Specific Chat Request Start
+                          final firestore = FirebaseFirestore.instance;
+                          final userId = userStore.user?.id;
+                          final astrologerId = widget.receiverId; // Replace with actual astrologer ID
+                          final querySnapshot = await firestore
+                              .collection('chat_requests')
+                              .where('userId', isEqualTo: userId)
+                              .where('astrologerId', isEqualTo: astrologerId)
+                              .get();
+                          for (final doc in querySnapshot.docs) {
+                            await firestore.collection('chat_requests').doc(doc.id).delete();
+                          }
+                          DocumentSnapshot<Map<String, dynamic>> b1=await firestore.collection("chats").doc(widget.chatId).get();
+                          await firestore.collection("chat_history").doc(widget.chatId).set(b1.data()??{});
+                          await firestore.collection("chats").doc(widget.chatId).delete();
+                          print("operation.chat_requests.done");
+                          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => SplashScreen(),), (route) => false,);
+                        }, // Confirm
+                        child: Text('YES',style: TextStyle(color: AppColors.textWhite),),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                );
+              }, icon: Icon(Icons.cancel_outlined,color: Colors.red,)),
+              // IconButton(
+              //   icon: FaIcon(
+              //     FontAwesomeIcons.phone,
+              //     color: AppColors.textWhite,
+              //     size: 20,
+              //   ),
+              //   onPressed: () {
+              //     print("pressed");
+              //     Navigator.push(
+              //       context,
+              //       MaterialPageRoute(
+              //         builder: (context) => CallingScreen(
+              //           receiverId: widget.receiverId,
+              //           receiverImageUrl: imageUrl,
+              //           isVideoCall: false,
+              //           channelName: 'call_${widget.chatId}',
+              //         ),
+              //       ),
+              //     );
+              //   },
+              // ),
+              // IconButton(
+              //   icon: FaIcon(
+              //     FontAwesomeIcons.video,
+              //     color: AppColors.textWhite,
+              //     size: 20,
+              //   ),
+              //   onPressed: () {
+              //     print("CheckRoomID::${widget.chatId}");
+              //     print("receiverId::${widget.receiverId}");
+              //     // CheckRoomID::higCpUVGbFUdSTB4PyW6WLoGskL2_higCpUVGbFUdSTB4PyW6WLoGskL2
+              //     // receiverId::higCpUVGbFUdSTB4PyW6WLoGskL2
+              //
+              //     // CheckRoomID::higCpUVGbFUdSTB4PyW6WLoGskL2_qYYiTqiaG6Q84NkGblucV0GtJZx2
+              //     // receiverId::higCpUVGbFUdSTB4PyW6WLoGskL2
+              //     Navigator.push(
+              //       context,
+              //       MaterialPageRoute(
+              //         builder: (context) => VideoCallingScreen(
+              //           receiverId: widget.receiverId,
+              //           receiverImageUrl: imageUrl,
+              //           channelName: 'call_${widget.chatId}',
+              //         ),
+              //       ),
+              //     );
+              //   },
+              // ),
+            ],
+          ),
+          body: Column(
+            children: [
+              // Search Bar
+              // Padding(
+              //   padding: const EdgeInsets.all(12.0),
+              //   child: Container(
+              //     decoration: BoxDecoration(
+              //       color: AppColors.primaryDark.withOpacity(0.4),
+              //       borderRadius: BorderRadius.circular(20),
+              //       border: Border.all(
+              //         color: AppColors.zodiacGold.withOpacity(0.3),
+              //       ),
+              //     ),
+              //     child: TextField(
+              //       decoration: InputDecoration(
+              //         hintText: 'Search in conversation...',
+              //         hintStyle:
+              //         AppTextStyles.bodyMedium(color: AppColors.textWhite70),
+              //         prefixIcon: Icon(Icons.search, color: AppColors.textWhite70),
+              //         border: InputBorder.none,
+              //         contentPadding: const EdgeInsets.symmetric(vertical: 12),
+              //       ),
+              //       style: AppTextStyles.bodyMedium(color: AppColors.textWhite),
+              //     ),
+              //   ),
+              // ),
+              // Messages List
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: const AssetImage(AppImages.ic_background_user),
+                      fit: BoxFit.cover,
+                      colorFilter: ColorFilter.mode(
+                        Colors.black.withOpacity(0.7),
+                        BlendMode.darken,
+                      ),
+                    ),
+                  ),
+                  child: StreamBuilder<List<MessageModel>>(
+                    stream: _messageService.getMessages(widget.chatId),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.zodiacGold,
+                          ),
+                        );
+                      }
+                      if (snapshot.hasError) {
+                        return const Center(
+                          child: Text(
+                            'Error loading messages',
+                            style: TextStyle(color: AppColors.textWhite),
+                          ),
+                        );
+                      }
+                      final messages = snapshot.data ?? [];
+                      if (messages.isEmpty) {
+                        return const Center(
+                          child: Text(
+                            'Start the conversation!',
+                            style: TextStyle(color: AppColors.textWhite70),
+                          ),
+                        );
+                      }
+                      return ListView.builder(
+                        reverse: true, // Newest messages at bottom
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
+                        itemCount: messages.length,
+                        itemBuilder: (context, index) {
+                          final message = messages[index];
+                          final isSentByMe = message.senderId == currentUserId;
+                          final time = DateFormat('h:mm a')
+                              .format(message.timestamp.toDate());
+
+                          if (message.messageType == MessageType.text) {
+                            return isSentByMe
+                                ? _SentMessage(text: message.content, time: time)
+                                : _ReceivedMessage(
+                                text: message.content, time: time);
+                          } else if (message.messageType == MessageType.image) {
+                            return isSentByMe
+                                ? _SentImageMessage(
+                                imageUrl: message.content, time: time)
+                                : _ReceivedImageMessage(
+                                imageUrl: message.content, time: time);
+                          } else if (message.messageType == MessageType.video) {
+                            return isSentByMe
+                                ? _SentVideoMessage(
+                                videoUrl: message.content, time: time)
+                                : _ReceivedVideoMessage(
+                                videoUrl: message.content, time: time);
+                          } else if (message.messageType == MessageType.voice) {
+                            return isSentByMe
+                                ? _SentVoiceMessage(
+                                voiceUrl: message.content, time: time)
+                                : _ReceivedVoiceMessage(
+                                voiceUrl: message.content, time: time);
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ),
+              if(widget.isHistoryMode!=true)
+              // Message Input
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryDark.withOpacity(0.7),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Options Row (only shown when not recording)
+                    if (!_isRecording)
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        height: _showOptions ? 60 : 0,
+                        curve: Curves.easeInOut,
+                        child: _showOptions
+                            ? Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            InkWell(
+                              onTap: _handleImageMessage,
+                              splashColor:
+                              AppColors.zodiacGold.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color:
+                                  AppColors.primaryDark.withOpacity(0.5),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color:
+                                    AppColors.zodiacGold.withOpacity(0.3),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const FaIcon(
+                                      FontAwesomeIcons.camera,
+                                      color: AppColors.zodiacGold,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Photo',
+                                      style: AppTextStyles.bodyMedium(
+                                        color: AppColors.textWhite,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () async {
+                                setState(() => _showOptions = false);
+                                final XFile? video = await _picker.pickVideo(
+                                  source: ImageSource.gallery,
+                                );
+                                if (video != null) {
+                                  await _messageService.sendVideoMessage(
+                                    chatId: widget.chatId,
+                                    senderId: currentUserId,
+                                    receiverId: widget.receiverId,
+                                    videoFile: video,
+                                  );
+                                }
+                              },
+                              splashColor:
+                              AppColors.zodiacGold.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color:
+                                  AppColors.primaryDark.withOpacity(0.5),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color:
+                                    AppColors.zodiacGold.withOpacity(0.3),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const FaIcon(
+                                      FontAwesomeIcons.video,
+                                      color: AppColors.zodiacGold,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Video',
+                                      style: AppTextStyles.bodyMedium(
+                                        color: AppColors.textWhite,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                            : null,
+                      ),
+                    if (!_isRecording && _showOptions) const SizedBox(height: 8),
+                    // Input Row or Recording UI
+                    _isRecording
+                        ? Row(
                       children: [
-                        Text(
-                          userName,
-                          style: AppTextStyles.bodyMedium(
-                            color: AppColors.textWhite,
-                            fontWeight: FontWeight.w600,
+                        // Wavy animation (placeholder with Icon, replace with Lottie if available)
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryDark.withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(30),
+                              border: Border.all(
+                                color: AppColors.zodiacGold.withOpacity(0.3),
+                              ),
+                            ),
+                            child: Center(
+                              child: Lottie.asset(
+                                "assets/animations/record.json",
+                                width: 24,
+                                height: 24,
+                              ),
+                            ),
                           ),
                         ),
-                        Text(
-                          isOnline ? 'Online' : 'Offline',
-                          style: AppTextStyles.captionText(
-                            color: isOnline
-                                ? AppColors.successGreen
-                                : AppColors.textWhite70,
-                            fontSize: 12,
+                        const SizedBox(width: 8),
+                        // Send button with stop and send logic
+                        Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.zodiacGold,
+                          ),
+                          child: IconButton(
+                            icon: const FaIcon(
+                              FontAwesomeIcons.solidPaperPlane,
+                              color: AppColors.textWhite,
+                            ),
+                            onPressed: () async {
+                              try {
+                                await _recorder.stopRecorder();
+                                setState(() {
+                                  _isRecording = false;
+                                });
+                                if (_recordedFilePath != null) {
+                                  final file = XFile(_recordedFilePath!);
+                                  await _messageService.sendVoiceMessage(
+                                    chatId: widget.chatId,
+                                    senderId: currentUserId,
+                                    receiverId: widget.receiverId,
+                                    voiceFile: file,
+                                  );
+                                }
+                              } catch (e) {
+                                CommonUtilities.showError(
+                                    context, "Something went wrong");
+                              }
+                            },
+                          ),
+                        ),
+                      ],
+                    )
+                        : Row(
+                      children: [
+                        IconButton(
+                          icon: const FaIcon(
+                            FontAwesomeIcons.paperclip,
+                            color: AppColors.zodiacGold,
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            setState(() => _showOptions = !_showOptions);
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Container(
+                            padding:
+                            const EdgeInsets.symmetric(horizontal: 16),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryDark.withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(30),
+                              border: Border.all(
+                                color: AppColors.zodiacGold.withOpacity(0.3),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: _textController,
+                                    style: AppTextStyles.bodyMedium(
+                                        color: AppColors.textWhite),
+                                    decoration: InputDecoration(
+                                      hintText: 'Type your message...',
+                                      hintStyle: AppTextStyles.bodyMedium(
+                                          color: AppColors.textWhite70),
+                                      border: InputBorder.none,
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const FaIcon(
+                                    FontAwesomeIcons.microphone,
+                                    color: AppColors.zodiacGold,
+                                    size: 20,
+                                  ),
+                                  onPressed: _startRecording,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.zodiacGold,
+                          ),
+                          child: IconButton(
+                            icon: const FaIcon(
+                              FontAwesomeIcons.solidPaperPlane,
+                              color: AppColors.textWhite,
+                            ),
+                            onPressed: () async {
+                              final content = _textController.text.trim();
+                              if (content.isNotEmpty) {
+                                _textController.clear();
+                                await _messageService.sendMessage(
+                                  chatId: widget.chatId,
+                                  senderId: currentUserId,
+                                  receiverId: widget.receiverId,
+                                  content: content,
+                                  messageType: MessageType.text,
+                                );
+                              }
+                            },
                           ),
                         ),
                       ],
                     ),
-                  ),
-                ],
-              );
-            },
-          ),
-          actions: widget.isHistoryMode==true?[]:[
-            // if(userStore.user?.astrologerProfile==null)
-            IconButton(onPressed: (){
-              showDialog<bool>(
-                context: context,
-                barrierDismissible: false, // Force the user to choose an option
-                builder: (context) => AlertDialog(
-                  title: const Text('Close Session'),
-                  content: const Text('Are you sure you want to close this session?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(false), // Cancel
-                      child: const Text('Cancel'),
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                      ),
-                      onPressed: () async{
-                        // Start Delete Specific Chat Request Start
-                        final firestore = FirebaseFirestore.instance;
-                        final userId = userStore.user?.id;
-                        final astrologerId = widget.receiverId; // Replace with actual astrologer ID
-                        final querySnapshot = await firestore
-                            .collection('chat_requests')
-                            .where('userId', isEqualTo: userId)
-                            .where('astrologerId', isEqualTo: astrologerId)
-                            .get();
-                        for (final doc in querySnapshot.docs) {
-                          await firestore.collection('chat_requests').doc(doc.id).delete();
-                        }
-                        DocumentSnapshot<Map<String, dynamic>> b1=await firestore.collection("chats").doc(widget.chatId).get();
-                        await firestore.collection("chat_history").doc(widget.chatId).set(b1.data()??{});
-                        await firestore.collection("chats").doc(widget.chatId).delete();
-                        print("operation.chat_requests.done");
-                        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => SplashScreen(),), (route) => false,);
-                      }, // Confirm
-                      child: Text('YES',style: TextStyle(color: AppColors.textWhite),),
-                    ),
                   ],
                 ),
-              );
-            }, icon: Icon(Icons.cancel_outlined,color: Colors.red,)),
-            // IconButton(
-            //   icon: FaIcon(
-            //     FontAwesomeIcons.phone,
-            //     color: AppColors.textWhite,
-            //     size: 20,
-            //   ),
-            //   onPressed: () {
-            //     print("pressed");
-            //     Navigator.push(
-            //       context,
-            //       MaterialPageRoute(
-            //         builder: (context) => CallingScreen(
-            //           receiverId: widget.receiverId,
-            //           receiverImageUrl: imageUrl,
-            //           isVideoCall: false,
-            //           channelName: 'call_${widget.chatId}',
-            //         ),
-            //       ),
-            //     );
-            //   },
-            // ),
-            // IconButton(
-            //   icon: FaIcon(
-            //     FontAwesomeIcons.video,
-            //     color: AppColors.textWhite,
-            //     size: 20,
-            //   ),
-            //   onPressed: () {
-            //     print("CheckRoomID::${widget.chatId}");
-            //     print("receiverId::${widget.receiverId}");
-            //     // CheckRoomID::higCpUVGbFUdSTB4PyW6WLoGskL2_higCpUVGbFUdSTB4PyW6WLoGskL2
-            //     // receiverId::higCpUVGbFUdSTB4PyW6WLoGskL2
-            //
-            //     // CheckRoomID::higCpUVGbFUdSTB4PyW6WLoGskL2_qYYiTqiaG6Q84NkGblucV0GtJZx2
-            //     // receiverId::higCpUVGbFUdSTB4PyW6WLoGskL2
-            //     Navigator.push(
-            //       context,
-            //       MaterialPageRoute(
-            //         builder: (context) => VideoCallingScreen(
-            //           receiverId: widget.receiverId,
-            //           receiverImageUrl: imageUrl,
-            //           channelName: 'call_${widget.chatId}',
-            //         ),
-            //       ),
-            //     );
-            //   },
-            // ),
-          ],
-        ),
-        body: Column(
-          children: [
-            // Search Bar
-            // Padding(
-            //   padding: const EdgeInsets.all(12.0),
-            //   child: Container(
-            //     decoration: BoxDecoration(
-            //       color: AppColors.primaryDark.withOpacity(0.4),
-            //       borderRadius: BorderRadius.circular(20),
-            //       border: Border.all(
-            //         color: AppColors.zodiacGold.withOpacity(0.3),
-            //       ),
-            //     ),
-            //     child: TextField(
-            //       decoration: InputDecoration(
-            //         hintText: 'Search in conversation...',
-            //         hintStyle:
-            //         AppTextStyles.bodyMedium(color: AppColors.textWhite70),
-            //         prefixIcon: Icon(Icons.search, color: AppColors.textWhite70),
-            //         border: InputBorder.none,
-            //         contentPadding: const EdgeInsets.symmetric(vertical: 12),
-            //       ),
-            //       style: AppTextStyles.bodyMedium(color: AppColors.textWhite),
-            //     ),
-            //   ),
-            // ),
-            // Messages List
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: const AssetImage(AppImages.ic_background_user),
-                    fit: BoxFit.cover,
-                    colorFilter: ColorFilter.mode(
-                      Colors.black.withOpacity(0.7),
-                      BlendMode.darken,
-                    ),
-                  ),
-                ),
-                child: StreamBuilder<List<MessageModel>>(
-                  stream: _messageService.getMessages(widget.chatId),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.zodiacGold,
-                        ),
-                      );
-                    }
-                    if (snapshot.hasError) {
-                      return const Center(
-                        child: Text(
-                          'Error loading messages',
-                          style: TextStyle(color: AppColors.textWhite),
-                        ),
-                      );
-                    }
-                    final messages = snapshot.data ?? [];
-                    if (messages.isEmpty) {
-                      return const Center(
-                        child: Text(
-                          'Start the conversation!',
-                          style: TextStyle(color: AppColors.textWhite70),
-                        ),
-                      );
-                    }
-                    return ListView.builder(
-                      reverse: true, // Newest messages at bottom
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
-                      itemCount: messages.length,
-                      itemBuilder: (context, index) {
-                        final message = messages[index];
-                        final isSentByMe = message.senderId == currentUserId;
-                        final time = DateFormat('h:mm a')
-                            .format(message.timestamp.toDate());
-
-                        if (message.messageType == MessageType.text) {
-                          return isSentByMe
-                              ? _SentMessage(text: message.content, time: time)
-                              : _ReceivedMessage(
-                              text: message.content, time: time);
-                        } else if (message.messageType == MessageType.image) {
-                          return isSentByMe
-                              ? _SentImageMessage(
-                              imageUrl: message.content, time: time)
-                              : _ReceivedImageMessage(
-                              imageUrl: message.content, time: time);
-                        } else if (message.messageType == MessageType.video) {
-                          return isSentByMe
-                              ? _SentVideoMessage(
-                              videoUrl: message.content, time: time)
-                              : _ReceivedVideoMessage(
-                              videoUrl: message.content, time: time);
-                        } else if (message.messageType == MessageType.voice) {
-                          return isSentByMe
-                              ? _SentVoiceMessage(
-                              voiceUrl: message.content, time: time)
-                              : _ReceivedVoiceMessage(
-                              voiceUrl: message.content, time: time);
-                        }
-                        return const SizedBox.shrink();
-                      },
-                    );
-                  },
-                ),
               ),
-            ),
-            if(widget.isHistoryMode!=true)
-            // Message Input
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.primaryDark.withOpacity(0.7),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Options Row (only shown when not recording)
-                  if (!_isRecording)
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      height: _showOptions ? 60 : 0,
-                      curve: Curves.easeInOut,
-                      child: _showOptions
-                          ? Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          InkWell(
-                            onTap: _handleImageMessage,
-                            splashColor:
-                            AppColors.zodiacGold.withOpacity(0.3),
-                            borderRadius: BorderRadius.circular(12),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 8),
-                              decoration: BoxDecoration(
-                                color:
-                                AppColors.primaryDark.withOpacity(0.5),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color:
-                                  AppColors.zodiacGold.withOpacity(0.3),
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const FaIcon(
-                                    FontAwesomeIcons.camera,
-                                    color: AppColors.zodiacGold,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Photo',
-                                    style: AppTextStyles.bodyMedium(
-                                      color: AppColors.textWhite,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          InkWell(
-                            onTap: () async {
-                              setState(() => _showOptions = false);
-                              final XFile? video = await _picker.pickVideo(
-                                source: ImageSource.gallery,
-                              );
-                              if (video != null) {
-                                await _messageService.sendVideoMessage(
-                                  chatId: widget.chatId,
-                                  senderId: currentUserId,
-                                  receiverId: widget.receiverId,
-                                  videoFile: video,
-                                );
-                              }
-                            },
-                            splashColor:
-                            AppColors.zodiacGold.withOpacity(0.3),
-                            borderRadius: BorderRadius.circular(12),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 8),
-                              decoration: BoxDecoration(
-                                color:
-                                AppColors.primaryDark.withOpacity(0.5),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color:
-                                  AppColors.zodiacGold.withOpacity(0.3),
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const FaIcon(
-                                    FontAwesomeIcons.video,
-                                    color: AppColors.zodiacGold,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Video',
-                                    style: AppTextStyles.bodyMedium(
-                                      color: AppColors.textWhite,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      )
-                          : null,
-                    ),
-                  if (!_isRecording && _showOptions) const SizedBox(height: 8),
-                  // Input Row or Recording UI
-                  _isRecording
-                      ? Row(
-                    children: [
-                      // Wavy animation (placeholder with Icon, replace with Lottie if available)
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryDark.withOpacity(0.5),
-                            borderRadius: BorderRadius.circular(30),
-                            border: Border.all(
-                              color: AppColors.zodiacGold.withOpacity(0.3),
-                            ),
-                          ),
-                          child: Center(
-                            child: Lottie.asset(
-                              "assets/animations/record.json",
-                              width: 24,
-                              height: 24,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      // Send button with stop and send logic
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.zodiacGold,
-                        ),
-                        child: IconButton(
-                          icon: const FaIcon(
-                            FontAwesomeIcons.solidPaperPlane,
-                            color: AppColors.textWhite,
-                          ),
-                          onPressed: () async {
-                            try {
-                              await _recorder.stopRecorder();
-                              setState(() {
-                                _isRecording = false;
-                              });
-                              if (_recordedFilePath != null) {
-                                final file = XFile(_recordedFilePath!);
-                                await _messageService.sendVoiceMessage(
-                                  chatId: widget.chatId,
-                                  senderId: currentUserId,
-                                  receiverId: widget.receiverId,
-                                  voiceFile: file,
-                                );
-                              }
-                            } catch (e) {
-                              CommonUtilities.showError(
-                                  context, "Something went wrong");
-                            }
-                          },
-                        ),
-                      ),
-                    ],
-                  )
-                      : Row(
-                    children: [
-                      IconButton(
-                        icon: const FaIcon(
-                          FontAwesomeIcons.paperclip,
-                          color: AppColors.zodiacGold,
-                          size: 20,
-                        ),
-                        onPressed: () {
-                          setState(() => _showOptions = !_showOptions);
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Container(
-                          padding:
-                          const EdgeInsets.symmetric(horizontal: 16),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryDark.withOpacity(0.5),
-                            borderRadius: BorderRadius.circular(30),
-                            border: Border.all(
-                              color: AppColors.zodiacGold.withOpacity(0.3),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: TextField(
-                                  controller: _textController,
-                                  style: AppTextStyles.bodyMedium(
-                                      color: AppColors.textWhite),
-                                  decoration: InputDecoration(
-                                    hintText: 'Type your message...',
-                                    hintStyle: AppTextStyles.bodyMedium(
-                                        color: AppColors.textWhite70),
-                                    border: InputBorder.none,
-                                  ),
-                                ),
-                              ),
-                              IconButton(
-                                icon: const FaIcon(
-                                  FontAwesomeIcons.microphone,
-                                  color: AppColors.zodiacGold,
-                                  size: 20,
-                                ),
-                                onPressed: _startRecording,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.zodiacGold,
-                        ),
-                        child: IconButton(
-                          icon: const FaIcon(
-                            FontAwesomeIcons.solidPaperPlane,
-                            color: AppColors.textWhite,
-                          ),
-                          onPressed: () async {
-                            final content = _textController.text.trim();
-                            if (content.isNotEmpty) {
-                              _textController.clear();
-                              await _messageService.sendMessage(
-                                chatId: widget.chatId,
-                                senderId: currentUserId,
-                                receiverId: widget.receiverId,
-                                content: content,
-                                messageType: MessageType.text,
-                              );
-                            }
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

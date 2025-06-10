@@ -153,7 +153,7 @@ class _OngoingVideoCallScreenState extends State<OngoingVideoCallScreen> {
           _buildRemoteVideo(),
 
           // Local Video (Draggable Preview)
-          if (_isCallJoined) _buildLocalVideo(),
+          /*if (_isCallJoined)*/ _buildLocalVideo(),
 
           // Header with call info
           _buildHeader(),
@@ -172,12 +172,26 @@ class _OngoingVideoCallScreenState extends State<OngoingVideoCallScreen> {
   }
 
   Widget _buildRemoteVideo() {
+    if(_remoteUid != null){
+      return AgoraVideoView(
+        controller: VideoViewController.remote(
+
+          rtcEngine: _agoraService.engine!,
+          canvas: VideoCanvas(uid: _remoteUid),
+          connection: RtcConnection(channelId: widget.channelName),
+        ),
+      );
+    }
+    return SizedBox();
+
     final condition = _remoteUserJoined && _remoteVideoOn && _remoteUid != null;
     debugPrint(
         'Building remote video: UID=$_remoteUid, Joined=$_remoteUserJoined, VideoOn=$_remoteVideoOn, Condition=$condition, Channel=${widget.channelName}');
     return condition
-        ? AgoraVideoView(
+        ?
+    AgoraVideoView(
             controller: VideoViewController.remote(
+
               rtcEngine: _agoraService.engine!,
               canvas: VideoCanvas(uid: _remoteUid),
               connection: RtcConnection(channelId: widget.channelName),

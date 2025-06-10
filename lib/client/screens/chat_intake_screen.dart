@@ -137,6 +137,7 @@ class _ChatIntakeFormScreenState extends State<ChatIntakeFormScreen> {
     CommonUtilities.showLoader(context);
 
     try {
+      await _chatRequestService.removeOldChat(userStore?.user?.id??"");
       // Create chat request using the service
       final requestId = await _chatRequestService.createChatRequest(
         astrologerId: widget.astrologerDetails.id!,
@@ -152,7 +153,6 @@ class _ChatIntakeFormScreenState extends State<ChatIntakeFormScreen> {
         topic: _topicController.text,
       );
 
-      await _chatRequestService.removeOldChat(userStore?.user?.id??"");
       if (requestId == null) {
         throw Exception('Failed to create chat request');
       }

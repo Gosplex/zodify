@@ -134,7 +134,7 @@ class ChatHistoryScreen extends StatelessWidget {
                                 ),
                               ),
                           Text(
-                          "${userSnapshot.data?.birthPlace}",
+                          "${userSnapshot.data?.birthPlace?? ""}",
                             style: AppTextStyles.bodyMedium(
                               color: AppColors.primaryLight,
                               fontWeight: FontWeight.w600,
@@ -151,7 +151,9 @@ class ChatHistoryScreen extends StatelessWidget {
                               ),
                               SizedBox(height: 16,),
                               _buildRowView(key: "Name",value: userSnapshot.data!.name.toString()),
+                              if(DateTime.tryParse(userSnapshot.data!.birthDate.toString())!=null)
                               _buildRowView(key: "DOB",value: "${DateFormat("dd MMM yyyy hh:mm a").format(DateTime.parse(userSnapshot.data!.birthDate.toString()))}"),
+                              if(userSnapshot.data!.birthPlace!=null)
                               _buildRowView(key: "POB",value: userSnapshot.data!.birthPlace.toString()),
                             ],
                           )

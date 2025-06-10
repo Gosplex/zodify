@@ -1,10 +1,49 @@
 import 'package:astrology_app/common/utils/images.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
-class CallHistoryScreen extends StatelessWidget {
-  const CallHistoryScreen({super.key});
+import '../../main.dart';
+
+class CallHistoryScreen extends StatefulWidget {
+  String type;
+  CallHistoryScreen({super.key, required this.type});
+
+  @override
+  State<CallHistoryScreen> createState() => _CallHistoryScreenState();
+}
+
+class _CallHistoryScreenState extends State<CallHistoryScreen> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  var historyData=[];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchHistory();
+  }
+
+
+  _fetchHistory() async {
+    try {
+      QuerySnapshot<Map<String, dynamic>> querySnapshot;
+      querySnapshot = await _firestore
+          .collection('callHistory')
+          .where('receiverId', isEqualTo: userStore.user?.id)
+          .where('callType', isEqualTo: widget.type)
+          .get();
+      print("CheckCount::::${querySnapshot.docs.length}");
+      querySnapshot.docs.forEach((element) {
+        historyData.add(element.data());
+      },);
+      print("Check list Value:::${historyData}");
+      setState(() {});
+    } catch (e, s) {
+      debugPrint('Error fetching astrologers: $e:::$s');
+      return [];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,37 +87,16 @@ class CallHistoryScreen extends StatelessWidget {
           SafeArea(
             child: Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  child: Container(
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[800]!.withOpacity(0.4),
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: Colors.amber[700]!.withOpacity(0.3)),
-                    ),
-                    child: const TextField(
-                      style: TextStyle(color: Colors.white, fontSize: 14),
-                      decoration: InputDecoration(
-                        prefixIcon: Icon(Icons.search, color: Colors.white70, size: 18),
-                        hintText: 'Search call history',
-                        hintStyle: TextStyle(color: Colors.white70, fontSize: 14),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(vertical: 9),
-                      ),
-                    ),
-                  ),
-                ),
                 Expanded(
                   child: ListView.separated(
                     physics: const BouncingScrollPhysics(),
-                    itemCount: dummyCalls.length,
+                    itemCount: historyData.length,
                     separatorBuilder: (context, index) => Divider(
                       height: 1,
                       color: Colors.white.withOpacity(0.1),
                       indent: 60,
                     ),
-                    itemBuilder: (context, index) => _buildCallItem(dummyCalls[index]),
+                    itemBuilder: (context, index) => _buildCallItem(historyData[index]),
                   ),
                 ),
               ],
@@ -89,19 +107,7 @@ class CallHistoryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCallItem(Call call) {
-    final timeFormat = DateFormat('h:mm a');
-    final dateFormat = DateFormat('MMM dd');
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final callDate = DateTime(call.date.year, call.date.month, call.date.day);
-
-    String dateText = callDate == today
-        ? 'Today'
-        : callDate == today.subtract(const Duration(days: 1))
-        ? 'Yesterday'
-        : dateFormat.format(call.date);
-
+  Widget _buildCallItem(var callData) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       leading: Container(
@@ -112,16 +118,8 @@ class CallHistoryScreen extends StatelessWidget {
           color: Colors.grey[800]!.withOpacity(0.6),
         ),
         child: Icon(
-          call.type == 'Missed'
-              ? Icons.call_missed
-              : call.type == 'Outgoing'
-              ? Icons.call_made
-              : Icons.call_received,
-          color: call.type == 'Missed'
-              ? Colors.red[400]
-              : call.type == 'Outgoing'
-              ? Colors.green[400]
-              : Colors.amber[700],
+          Icons.call_received,
+          color:Colors.amber[700],
           size: 20,
         ),
       ),
@@ -129,63 +127,68 @@ class CallHistoryScreen extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              call.contactName,
+              callData.keys.contains("callerName")?
+              callData['callerName']:"Anonymous User",
               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14),
               overflow: TextOverflow.ellipsis,
             ),
           ),
           Text(
-            timeFormat.format(call.date),
+          DateFormat('dd MMM yyyy, hh:mm a').format(
+              DateTime.parse(callData['timestamp'].toString())).toString(),
             style: const TextStyle(color: Colors.white70, fontSize: 12),
           ),
         ],
       ),
       subtitle: Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Icon(
-            call.video ? Icons.videocam : Icons.call,
-            size: 14,
-            color: Colors.white70,
+          Row(
+            children: [
+              Icon(
+                callData['callType']=="video" ? Icons.videocam : Icons.call,
+                size: 14,
+                color: Colors.white70,
+              ),
+              Text(
+                ' ${callData['callType']}',
+                style: const TextStyle(color: Colors.white70, fontSize: 12),
+              ),
+            ],
           ),
-          const SizedBox(width: 4),
+          // const SizedBox(width: 4),
           Text(
-            '${call.type} • ${call.duration}',
+            'Duration: ${callData['durationSeconds']} Seconds',
             style: const TextStyle(color: Colors.white70, fontSize: 12),
           ),
         ],
       ),
-      trailing: call.type == 'Missed'
-          ? IconButton(
-        icon: const Icon(Icons.call, color: Colors.amber, size: 20),
-        padding: const EdgeInsets.all(4),
-        onPressed: () {},
-      )
-          : null,
       dense: true,
     );
   }
 }
 
-class Call {
-  final String type;
-  final String duration;
-  final DateTime date;
-  final String contactName;
-  final bool video;
-
-  Call({
-    required this.type,
-    required this.duration,
-    required this.date,
-    required this.contactName,
-    this.video = false,
-  });
-}
-
-final List<Call> dummyCalls = [
-  Call(type: 'Missed', duration: 'Missed', date: DateTime.now().subtract(const Duration(minutes: 15)), contactName: 'Priya Sharma'),
-  Call(type: 'Outgoing', duration: '12m 30s', date: DateTime.now().subtract(const Duration(hours: 2)), contactName: 'Raj Patel', video: true),
-  Call(type: 'Incoming', duration: '8m 15s', date: DateTime.now().subtract(const Duration(days: 1)), contactName: 'Dr. Amit Joshi'),
-  Call(type: 'Missed', duration: 'Missed', date: DateTime.now().subtract(const Duration(days: 1, hours: 3)), contactName: 'Neha Gupta', video: true),
-  Call(type: 'Outgoing', duration: '20m 45s', date: DateTime.now().subtract(const Duration(days: 2)), contactName: 'Manoj Kumar'),
-];
+// class Call {
+//   final String type;
+//   final String duration;
+//   final DateTime date;
+//   final String contactName;
+//   final bool video;
+//
+//   Call({
+//     required this.type,
+//     required this.duration,
+//     required this.date,
+//     required this.contactName,
+//     this.video = false,
+//   });
+// }
+//
+// final List<Call> dummyCalls = [
+//   Call(type: 'Missed', duration: 'Missed', date: DateTime.now().subtract(const Duration(minutes: 15)), contactName: 'Priya Sharma'),
+//   Call(type: 'Outgoing', duration: '12m 30s', date: DateTime.now().subtract(const Duration(hours: 2)), contactName: 'Raj Patel', video: true),
+//   Call(type: 'Incoming', duration: '8m 15s', date: DateTime.now().subtract(const Duration(days: 1)), contactName: 'Dr. Amit Joshi'),
+//   Call(type: 'Missed', duration: 'Missed', date: DateTime.now().subtract(const Duration(days: 1, hours: 3)), contactName: 'Neha Gupta', video: true),
+//   Call(type: 'Outgoing', duration: '20m 45s', date: DateTime.now().subtract(const Duration(days: 2)), contactName: 'Manoj Kumar'),
+// ];

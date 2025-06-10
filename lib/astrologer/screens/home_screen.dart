@@ -7,6 +7,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lottie/lottie.dart';
 import '../../client/model/user_model.dart';
 import '../../client/screens/user_dashboard_screen.dart';
+import '../../common/screens/call_history_screen.dart';
 import '../../common/screens/chat_history_screen.dart';
 import '../../common/utils/app_text_styles.dart';
 import '../../common/utils/colors.dart';
@@ -77,15 +78,20 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       DashboardItem(
         FontAwesomeIcons.phone,
-        'Calls',
+        'Calls History',
         Colors.blue,
-            () {},
+            () {
+              // CallHistoryScreen
+              Navigator.push(context, MaterialPageRoute(builder: (context) => CallHistoryScreen(type: 'voice',),));
+            },
       ),
       DashboardItem(
         FontAwesomeIcons.video,
-        'Go Live',
+        'Video Calls',
         Colors.red,
-            () {},
+            () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => CallHistoryScreen(type:"video"),));
+            },
       ),
       DashboardItem(
         FontAwesomeIcons.tag,

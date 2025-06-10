@@ -287,7 +287,13 @@ class _OngoingCallScreenState extends State<OngoingCallScreen> {
                         onPressed: () {
                           _agoraService.leaveCall();
                           if (mounted && Navigator.canPop(context)) {
-                            Navigator.pop(context);
+                            Navigator.of(context)
+                                .pushReplacement(MaterialPageRoute(
+                              builder: (context) {
+                                return UserDashboardScreen();
+                              },
+                            ));
+                            // Navigator.pop(context);
                           } else {
                             Navigator.of(context)
                                 .pushReplacement(MaterialPageRoute(
