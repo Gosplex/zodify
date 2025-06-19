@@ -43,10 +43,10 @@ class _VideoCallingScreenState extends State<VideoCallingScreen> {
   @override
   void initState() {
     super.initState();
-    // print("CheckData::::${widget.channelName}");
-    // print("CheckData::::${widget.receiverId}");
-    // print("CheckData::::${widget.receiverImageUrl}");
-    // print("CheckData::::${widget.key}");
+    print("CheckData::::${widget.channelName}");
+    print("CheckData::::${widget.receiverId}");
+    print("CheckData::::${widget.receiverImageUrl}");
+    print("CheckData::::${widget.key}");
     _initializeCall();
     _startTimer();
     _timeoutTimer = Timer(const Duration(seconds: 30), () {
@@ -94,6 +94,7 @@ class _VideoCallingScreenState extends State<VideoCallingScreen> {
 
 
 
+      print("SendingCallNotification:::${receiver?.fcmToken}");
       if (receiver?.fcmToken != null) {
         await _notificationService.sendCallNotification(
           receiverId: widget.receiverId,

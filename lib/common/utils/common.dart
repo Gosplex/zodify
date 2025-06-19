@@ -23,16 +23,66 @@ class CommonUtilities {
     );
   }
 
-  static Future<dynamic> fetchCity(String searchString) async {
+      static Future<dynamic> fetchCity(String searchString) async {
+        final url =
+            'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$searchString&types=(cities)&components=country:in&key=AIzaSyA2ePDSb0Y1wStqWbLA0UwvFGZMXb7KuOY';
+        final response = await http.get(Uri.parse(url));
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'OK') {
+          return data['predictions'];
+        } else {
+          return [];
+        }
+      }
+
+  static Future<String?> fetchPlaceLocation(String placeId) async {
     final url =
-        'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$searchString&types=(cities)&components=country:in&key=AIzaSyA2ePDSb0Y1wStqWbLA0UwvFGZMXb7KuOY';
+        'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&key=AIzaSyA2ePDSb0Y1wStqWbLA0UwvFGZMXb7KuOY';
     final response = await http.get(Uri.parse(url));
     final data = jsonDecode(response.body);
+
     if (data['status'] == 'OK') {
-      return data['predictions'];
+      final location = data['result']['geometry']['location'];
+      return '${location['lat']},${location['lat']}';
+    } else {
+      return null;
+    }
+  }
+
+  static Future<dynamic> getKundliDetails(
+      {required String dateTime, required String location}) async {
+    // Client Name
+    // TestingAPI App
+    // Client ID
+    // 4de6a4c3-8953-4af5-a69b-d94fa2eec012
+    // Client Secret
+    // Am1Eg2CwFDtEay4PZvXN8jFGMWuhPgfRsS87PnH5
+    String token=await generateAuthTokenForKundli();
+    final url = 'https://api.prokerala.com/v2/astrology/kundli/advanced?ayanamsa=1&datetime=$dateTime&coordinates=$location&la=en';
+    final response = await http.get(Uri.parse(url),headers: {
+      'Authorizations':'Bearer $token'
+    });
+    final data = jsonDecode(response.body);
+    if (data['status'] == 'ok') {
+      return data['data'];
     } else {
       return [];
     }
+  }
+
+  static Future<String> generateAuthTokenForKundli() async {
+    // Client Name
+    // TestingAPI App
+    // Client ID
+    // 4de6a4c3-8953-4af5-a69b-d94fa2eec012
+    // Client Secret
+    // Am1Eg2CwFDtEay4PZvXN8jFGMWuhPgfRsS87PnH5
+    final url = 'https://api.prokerala.com/token?grant_type=client_credentials&client_id=4de6a4c3-8953-4af5-a69b-d94fa2eec012&client_secret=Am1Eg2CwFDtEay4PZvXN8jFGMWuhPgfRsS87PnH5';
+    final response = await http.post(Uri.parse(url),);
+    final data = jsonDecode(response.body);
+    print('KundliToken:::${data}');
+    print('KundliToken:::${data}');
+    return data['access_token'].toString();
   }
 
   static void showSuccess(BuildContext context, String message) {
@@ -383,3 +433,224 @@ class CommonUtilities {
   }
 
 }
+
+
+  class KundliApiService {
+    static String? TokenVal=null;
+
+    static Future<dynamic> getKundliDetails({
+      required String dateTime,
+      required String location,
+      required int ayanamsa,
+    }) async {
+      print('Kundli Genrate call:::${dateTime}:::=>${location}');
+      print('🔄 Getting auth token...');
+      if(TokenVal==null){
+        TokenVal = await generateAuthTokenForKundli();
+      }
+      print('✅ Token received: $TokenVal');
+
+      final url = 'https://api.prokerala.com/v2/astrology/kundli?ayanamsa=$ayanamsa&datetime=$dateTime&coordinates=$location&la=en';
+      // final url = 'https://api.prokerala.com/v2/astrology/kundli/advanced?ayanamsa=$ayanamsa&datetime=$dateTime&coordinates=$location&la=en';
+      print('🌐 Request URL: $url');
+
+      final headers = {
+        'Authorization': 'Bearer $TokenVal',
+      };
+      print('📡 Request Headers: $headers');
+
+      final response = await http.get(Uri.parse(url), headers: headers);
+      print('📥 Response Status: ${response.statusCode}');
+      print('📥 Response Body: ${response.body}');
+
+      final data = jsonDecode(response.body);
+      if (data['status'] == 'ok') {
+        print('✅ Kundli data retrieved successfully');
+        return data['data'];
+      } else {
+        print('❌ Error: API did not return status ok');
+        return [];
+      }
+    }
+
+    static Future<dynamic> getChart ({
+      required String dateTime,
+      required String location,
+      required int ayanamsa,
+    }) async {
+      print('Kundli Genrate call:::${dateTime}:::=>${location}');
+      print('🔄 Getting auth token...');
+      if(TokenVal==null){
+        TokenVal = await generateAuthTokenForKundli();
+      }
+      print('✅ Token received: $TokenVal');
+
+      final url =
+                'https://api.prokerala.com/v2/astrology/chart?ayanamsa=$ayanamsa&datetime=$dateTime&coordinates=$location&la=en&chart_type=navamsa&chart_style=north-indian&format=svg';
+      print('🌐 Request URL: $url');
+
+      final headers = {
+        'Authorization': 'Bearer $TokenVal',
+      };
+      print('📡 Request Headers: $headers');
+
+      final response = await http.get(Uri.parse(url), headers: headers);
+      print('📥 Response Status: ${response.statusCode}');
+      print('📥 Response Body: ${response.body}');
+
+      return response.body;
+      final data = jsonDecode(response.body);
+      if (data['status'] == 'ok') {
+        print('✅ Kundli data retrieved successfully');
+        return data['data'];
+      } else {
+        print('❌ Error: API did not return status ok');
+        return [];
+      }
+    }
+
+    static Future<dynamic> getApiCall(String path, [Map<String, String>? params]) async {
+      if (TokenVal == null) {
+        print('Generating new auth token...');
+        TokenVal = await KundliApiService.generateAuthTokenForKundli();
+        print('Token generated: $TokenVal');
+      }
+
+      final uri = Uri.https('api.prokerala.com', '/v2/astrology/$path', {
+        ...?params,
+        'la': 'en',
+      });
+
+      print('Making GET request to: $uri');
+      final res = await http.get(uri, headers: {
+        'Authorization': 'Bearer $TokenVal',
+      });
+
+      print('Response Status Code: ${res.statusCode}');
+      print('Response Body: ${res.body}');
+
+      try {
+        final decoded = json.decode(res.body)['data'];
+        print('Decoded Data: $decoded');
+        return decoded;
+      } catch (e, s) {
+        print('Decoding error: $e');
+        print('Stack trace: $s');
+        return res.body;
+      }
+    }
+
+    static Future<String> generateAuthTokenForKundli() async {
+      final url =
+          'https://api.prokerala.com/token';
+      print('🔐 Requesting auth token from: $url');
+
+      final response = await http.post(Uri.parse(url),headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+        body: {
+
+          'grant_type': 'client_credentials',
+          'client_id': '5388d432-ccd7-4060-9823-9a957c31b9de',
+          'client_secret': '5qT8iIykiRg4IVwoWsgHdzpedXf5XCJr7eNMOtPd',
+          // 'client_id': '2a2e574e-00a5-447c-8b6a-90cc8d0efa68',
+          // 'client_secret': 'V8qwiQ0aWzBtPlXK8RQ5AJvDvACJitBrFxd2UONH',
+          // 'client_id': '4de6a4c3-8953-4af5-a69b-d94fa2eec012',
+          // 'client_secret': 'Am1Eg2CwFDtEay4PZvXN8jFGMWuhPgfRsS87PnH5',
+        },
+      );
+      print('📥 Token Response Status: ${response.statusCode}');
+      print('📥 Token Response Body: ${response.body}');
+
+      final data = jsonDecode(response.body);
+      if (data.containsKey('access_token')) {
+        print('✅ Access Token Retrieved');
+        return data['access_token'].toString();
+      } else {
+        print('❌ Failed to retrieve access token');
+        throw Exception('Token generation failed');
+      }
+    }
+  }
+
+
+// class HoroscopeApiService {
+//   static String? t1;
+//   //
+//   // static Future<void> _ensureToken() async {
+//   //   if (_token != null) return;
+//   //   final res = await http.post(
+//   //     Uri.parse('https://api.prokerala.com/token'),
+//   //     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+//   //     body: {
+//   //       'grant_type': 'client_credentials',
+//   //       'client_id': _clientId,
+//   //       'client_secret': _clientSecret,
+//   //     },
+//   //   );
+//   //   final data = json.decode(res.body);
+//   //   _token = data['access_token'];
+//   // }
+//
+//   static Future<dynamic> _get(String path, [Map<String, String>? params]) async {
+//     if(t1==null){
+//       t1=await KundliApiService.generateAuthTokenForKundli();
+//     }
+//     final uri = Uri.https('api.prokerala.com', '/v2/astrology/$path', {...?params, 'la': 'en'});
+//     final res = await http.get(uri, headers: {'Authorization': 'Bearer ${t1.toString()}'});
+//     try{
+//       return json.decode(res.body)['data'];
+//     }catch(e,s){
+//       return res.body;
+//     }
+//   }
+//
+//   static Future<dynamic> getApiCall(String path, [Map<String, String>? params]) async {
+//     if(t1==null){
+//       t1=await KundliApiService.generateAuthTokenForKundli();
+//     }
+//     final uri = Uri.https('api.prokerala.com', '/v2/astrology/$path', {...?params, 'la': 'en'});
+//     final res = await http.get(uri, headers: {'Authorization': 'Bearer ${t1.toString()}'});
+//     try{
+//       return json.decode(res.body)['data'];
+//     }catch(e,s){
+//       return res.body;
+//     }
+//   }
+//
+//   static Future<dynamic> birthDetails({required String coordinates,required String dateTime}) => _get('birth-details', {
+//     'ayanamsa':'1',
+//     'coordinates':coordinates,
+//     'datetime':dateTime,
+//     'la':'en',
+// });
+//
+//   static Future<dynamic> kaalSarpDosh({required String coordinates,required String dateTime}) => _get('kaal-sarp-dosha', {
+//     'ayanamsa':'1',
+//     'coordinates':coordinates,
+//     'datetime':dateTime,
+//     'la':'en',
+//   });
+//
+//   static Future<dynamic> chart({required String coordinates,required String dateTime}) => _get('mangal-dosha', {
+//     'ayanamsa':'1',
+//     'coordinates':coordinates,
+//     'datetime':dateTime,
+//     'la':'en',
+//   });
+//
+//   static Future<dynamic> planetPosition() => _get('planet-position', {
+//
+//   });
+//
+//   static Future<dynamic> yoga({required String coordinates,required String dateTime,String? planet}) => _get('yoga', {
+//     'ayanamsa':'1',
+//     'coordinates':coordinates,
+//     'datetime':dateTime,
+//     'planet':planet??'',
+//     'la':'en',
+//   });
+//
+//
+// // Repeat for mangal-dosha, sade-sati, planet-position, dasha-periods, kundli-matching, horoscope-matching, etc.
+// }

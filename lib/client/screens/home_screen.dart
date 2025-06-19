@@ -12,6 +12,7 @@ import 'package:shimmer/shimmer.dart';
 import '../../astrologer/screens/astrologer_profile_screen.dart';
 import '../../common/screens/chat_history_screen.dart';
 import '../../common/screens/chat_message_screen.dart';
+import '../../common/screens/kundli_form_screen.dart';
 import '../../common/utils/app_text_styles.dart';
 import '../../common/utils/colors.dart';
 import '../../common/utils/common.dart';
@@ -542,10 +543,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Icon(FontAwesomeIcons.globe,
                                     color: Colors.white, size: 48),
                                 "Daily Horoscope"),
-                            _buildFeatureCircle(
-                                Image.asset(AppImages.ic_free_kundli,
-                                    width: 48),
-                                "Free Kundli"),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => KundliFormScreen(),));
+                              },
+                              child: _buildFeatureCircle(
+                                  Image.asset(AppImages.ic_free_kundli,
+                                      width: 48),
+                                  "Free Kundli"),
+                            ),
                             _buildFeatureCircle(
                                 Image.asset(AppImages.ic_kundli_match,
                                     width: 48),

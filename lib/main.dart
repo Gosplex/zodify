@@ -13,6 +13,9 @@ import 'client/screens/user_profile_screen.dart';
 import 'client/screens/user_registration_screen.dart';
 import 'client/screens/wallet_history_screen.dart';
 import 'common/screens/chat_list_screen.dart';
+import 'common/screens/horscope_detail_screen.dart';
+import 'common/screens/kundli_form_screen.dart';
+import 'common/screens/kundli_result_screen.dart';
 import 'common/screens/login_screen.dart';
 import 'common/screens/splash_screen.dart';
 import 'common/screens/user_registration_choice_screen.dart';
@@ -71,6 +74,8 @@ class MyApp extends StatelessWidget {
         '/user_edit_profile': (context) => const EditUserProfileScreen(),
         '/chat_list': (context) => const ChatListScreen(),
       },
+      // home: KundliFormScreen(),
+      // home: HoroscopeTabs(),
       home: SplashScreen(),
     );
   }

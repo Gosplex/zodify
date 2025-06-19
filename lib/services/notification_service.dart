@@ -495,7 +495,7 @@ class NotificationService {
       final serviceAccountJson = await DefaultAssetBundle.of(
               WidgetsBinding.instance!.rootElement!)
           .loadString(
-              'assets/zodify-6ff17-firebase-adminsdk-fbsvc-93837edb1e.json');
+              'assets/zodify-6ff17-firebase-adminsdk-fbsvc-5ec7753e9b.json');
       final serviceAccount = jsonDecode(serviceAccountJson);
       final credentials = ServiceAccountCredentials.fromJson(serviceAccount);
       final client = await clientViaServiceAccount(
@@ -577,7 +577,7 @@ class NotificationService {
       final serviceAccountJson = await DefaultAssetBundle.of(
               WidgetsBinding.instance!.rootElement!)
           .loadString(
-              'assets/zodify-6ff17-firebase-adminsdk-fbsvc-93837edb1e.json');
+              'assets/zodify-6ff17-firebase-adminsdk-fbsvc-5ec7753e9b.json');
       final serviceAccount = jsonDecode(serviceAccountJson);
       final credentials = ServiceAccountCredentials.fromJson(serviceAccount);
       final client = await clientViaServiceAccount(
@@ -670,7 +670,7 @@ class NotificationService {
       final serviceAccountJson = await DefaultAssetBundle.of(
               WidgetsBinding.instance!.rootElement!)
           .loadString(
-              'assets/zodify-6ff17-firebase-adminsdk-fbsvc-93837edb1e.json');
+              'assets/zodify-6ff17-firebase-adminsdk-fbsvc-5ec7753e9b.json');
       final serviceAccount = jsonDecode(serviceAccountJson);
       final credentials = ServiceAccountCredentials.fromJson(serviceAccount);
       final client = await clientViaServiceAccount(
@@ -765,7 +765,7 @@ class NotificationService {
       final serviceAccountJson = await DefaultAssetBundle.of(
               WidgetsBinding.instance!.rootElement!)
           .loadString(
-              'assets/zodify-6ff17-firebase-adminsdk-fbsvc-93837edb1e.json');
+              'assets/zodify-6ff17-firebase-adminsdk-fbsvc-5ec7753e9b.json');
       final serviceAccount = jsonDecode(serviceAccountJson);
       final credentials = ServiceAccountCredentials.fromJson(serviceAccount);
       final client = await clientViaServiceAccount(
