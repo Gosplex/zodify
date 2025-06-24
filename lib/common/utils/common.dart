@@ -43,7 +43,7 @@ class CommonUtilities {
 
     if (data['status'] == 'OK') {
       final location = data['result']['geometry']['location'];
-      return '${location['lat']},${location['lat']}';
+      return '${location['lat']},${location['lng']}';
     } else {
       return null;
     }
