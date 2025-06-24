@@ -2,7 +2,6 @@ import 'package:astrology_app/main.dart';
 import 'package:flutter/material.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:astrology_app/common/utils/app_text_styles.dart';
-import 'package:astrology_app/common/utils/colors.dart';
 import 'package:astrology_app/services/agora_services.dart';
 import 'package:astrology_app/services/user_service.dart';
 
@@ -40,7 +39,7 @@ class _OngoingVideoCallScreenState extends State<OngoingVideoCallScreen> {
   void initState() {
     super.initState();
     debugPrint(
-        'Initializing OngoingVideoCallScreen with channel: ${widget.channelName}');
+        'Initializing OngoingVideoCallScreen: channel=${widget.channelName}, isCaller=${widget.isCaller}');
     _initialize();
     _setupListeners();
   }
@@ -56,21 +55,20 @@ class _OngoingVideoCallScreenState extends State<OngoingVideoCallScreen> {
       }
     });
 
-    _remoteUserJoined = true;
-
-
-    // _agoraService.remoteUserJoined.listen((joined) {
-    //   debugPrint('remoteUserJoined event: $joined');
-    //   if (mounted) {
-    //     setState(() {
-    //       _remoteUserJoined = joined;
-    //       debugPrint('Updated _remoteUserJoined: $_remoteUserJoined');
-    //     });
-    //     if (!joined) {
-    //       Navigator.pop(context);
-    //     }
-    //   }
-    // });
+    _agoraService.remoteUserJoined.listen((joined) {
+      debugPrint('remoteUserJoined event: $joined');
+      if (mounted) {
+        setState(() {
+          _remoteUserJoined = joined;
+          debugPrint('Updated _remoteUserJoined: $_remoteUserJoined');
+        });
+        if (!joined && _isCallJoined) {
+          debugPrint('Remote user left, ending call');
+          _agoraService.leaveCall();
+          Navigator.pop(context);
+        }
+      }
+    });
 
     _agoraService.remoteVideoStream.listen((videoState) {
       debugPrint('remoteVideoStream event: $videoState');
@@ -78,7 +76,6 @@ class _OngoingVideoCallScreenState extends State<OngoingVideoCallScreen> {
         setState(() {
           final newUid = videoState.keys.first;
           final newVideoOn = videoState[newUid] ?? false;
-          // Only update if the UID is new or video state changes
           if (_remoteUid != newUid || _remoteVideoOn != newVideoOn) {
             _remoteUid = newUid;
             _remoteVideoOn = newVideoOn;
@@ -92,7 +89,7 @@ class _OngoingVideoCallScreenState extends State<OngoingVideoCallScreen> {
 
   Future<void> _initialize() async {
     try {
-      // Fetch receiver details
+// Fetch receiver details
       final user = await _userService.getUserDetails(widget.receiverId);
       if (user != null && mounted) {
         setState(() {
@@ -100,15 +97,25 @@ class _OngoingVideoCallScreenState extends State<OngoingVideoCallScreen> {
         });
       }
 
-      // Initialize and join call if not already joined
+// Check initial remote user state
+      if (_agoraService.isRemoteUserJoined) {
+        setState(() {
+          _remoteUserJoined = true;
+        });
+      }
+
+// Initialize and join call if not already joined
       if (_agoraService.currentChannel != widget.channelName) {
         await _agoraService.initialize(CallType.video);
         await _agoraService.joinCall(
           widget.channelName,
-          widget.receiverId,
+          userStore.user!.id!,
           CallType.video,
+          isCaller: widget.isCaller,
+          receiverId: widget.receiverId,
         );
-        debugPrint('Joined call with channel: ${widget.channelName}');
+        debugPrint(
+            'Joined call: channel=${widget.channelName}, isCaller=${widget.isCaller}');
         setState(() {
           _isCallJoined = true;
         });
@@ -140,6 +147,7 @@ class _OngoingVideoCallScreenState extends State<OngoingVideoCallScreen> {
       _agoraService.leaveCall();
       debugPrint('Left call and cleaned up resources');
     }
+    debugPrint('OngoingVideoCallScreen disposed');
     super.dispose();
   }
 
@@ -149,19 +157,19 @@ class _OngoingVideoCallScreenState extends State<OngoingVideoCallScreen> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Remote Video (Full Screen)
+// Remote Video (Full Screen)
           _buildRemoteVideo(),
 
-          // Local Video (Draggable Preview)
+// Local Video (Draggable Preview)
           /*if (_isCallJoined)*/ _buildLocalVideo(),
 
-          // Header with call info
+// Header with call info
           _buildHeader(),
 
-          // Control buttons
+// Control buttons
           _buildControlBar(),
 
-          // Loading Indicator
+// Loading Indicator
           if (!_isCallJoined)
             const Center(
               child: CircularProgressIndicator(color: Colors.white),
@@ -186,7 +194,7 @@ class _OngoingVideoCallScreenState extends State<OngoingVideoCallScreen> {
 
     final condition = _remoteUserJoined && _remoteVideoOn && _remoteUid != null;
     debugPrint(
-        'Building remote video: UID=$_remoteUid, Joined=$_remoteUserJoined, VideoOn=$_remoteVideoOn, Condition=$condition, Channel=${widget.channelName}');
+        'Building remote video: UID=$_remoteUid, Joined=$_remoteUserJoined, VideoOn=$_remoteVideoOn, Condition=$condition');
     return condition
         ?
     AgoraVideoView(
@@ -233,7 +241,6 @@ class _OngoingVideoCallScreenState extends State<OngoingVideoCallScreen> {
   }
 
   Widget _buildLocalVideo() {
-    final uid = _agoraService.generateUid(userStore.user!.id!);
     return Positioned(
       left: _localVideoPosition.dx,
       top: _localVideoPosition.dy,
@@ -274,7 +281,7 @@ class _OngoingVideoCallScreenState extends State<OngoingVideoCallScreen> {
                   child: AgoraVideoView(
                     controller: VideoViewController(
                       rtcEngine: _agoraService.engine!,
-                      canvas: VideoCanvas(uid: 0),
+                      canvas: const VideoCanvas(uid: 0),
                     ),
                   ),
                 )

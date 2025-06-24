@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart' show rootBundle;
 import 'dart:io';
+import 'package:rxdart/rxdart.dart';
 
 import 'call_history_service.dart';
 
@@ -27,10 +28,11 @@ class AgoraService {
   bool _isSpeakerOn = true;
   bool _isVideoEnabled = false;
   bool _isCaller = false;
-  final _remoteUserJoinedController = StreamController<bool>.broadcast();
-  final _callDurationController = StreamController<Duration>.broadcast();
-  final _remoteVideoStreamController =
-  StreamController<Map<int, bool>>.broadcast();
+  final _remoteUserJoinedController = BehaviorSubject<bool>.seeded(false);
+  final _callDurationController = BehaviorSubject<Duration>.seeded(
+      Duration.zero);
+  final _remoteVideoStreamController = BehaviorSubject<Map<int, bool>>.seeded(
+      {});
   Timer? _durationTimer;
   Duration _callDuration = Duration.zero;
   final CallHistoryService _callHistoryService = CallHistoryService();
@@ -39,7 +41,7 @@ class AgoraService {
       'https://us-central1-zodify-6ff17.cloudfunctions.net/generateRtcToken';
   static const String _apiKey = 'k9m4p7q2r8t3w6z1';
 
-  // Getter for RtcEngine
+// Getters
   RtcEngine? get engine => _engine;
 
   Stream<bool> get remoteUserJoined => _remoteUserJoinedController.stream;
@@ -51,23 +53,35 @@ class AgoraService {
 
   bool get isCaller => _isCaller;
 
+  bool get isMuted => _isMuted;
+
+  bool get isSpeakerOn => _isSpeakerOn;
+
+  bool get isVideoEnabled => _isVideoEnabled;
+
+  bool get isRemoteUserJoined => _remoteUserJoinedController.value;
+
+  Map<int, bool> get currentRemoteVideoState =>
+      _remoteVideoStreamController.value;
+
   void updateRemoteVideoStream(int remoteUid, bool videoEnabled) {
-    debugPrint('Updating remote video stream: UID=$remoteUid, VideoEnabled=$videoEnabled');
+    debugPrint(
+        'Updating remote video stream: UID=$remoteUid, VideoEnabled=$videoEnabled');
     _remoteVideoStreamController.add({remoteUid: videoEnabled});
   }
 
-
-  // Your Agora App ID
   static const String appId = '2a536a0b8d1f4270b7ee8606e5c5ca1c';
 
   Future<void> initialize(CallType callType) async {
-    // Destroy existing engine if it exists
+// Destroy existing engine if it exists
     if (_engine != null) {
       debugPrint('Destroying existing Agora engine...');
       try {
         await _engine!.leaveChannel();
-        await _engine!.stopPreview();
-        await _engine!.disableVideo();
+        if (_isVideoEnabled) {
+          await _engine!.stopPreview();
+          await _engine!.disableVideo();
+        }
         await _engine!.disableAudio();
         _engine!.unregisterEventHandler(RtcEngineEventHandler());
         await _engine!.release(sync: true);
@@ -78,16 +92,14 @@ class AgoraService {
       _engine = null;
       _isVideoEnabled = false;
     }
-    print("video permission");
 
     if (appId.isEmpty || appId == 'YOUR_AGORA_APP_ID') {
       throw Exception('Invalid Agora App ID. Please provide a valid App ID.');
     }
 
-    // Request necessary permissions
+// Request permissions
     final permissions = [Permission.microphone];
     if (callType == CallType.video) {
-      print("video permission");
       permissions.add(Permission.camera);
     }
     final statuses = await permissions.request();
@@ -109,16 +121,16 @@ class AgoraService {
         RtcEngineEventHandler(
           onJoinChannelSuccess: (RtcConnection connection, int elapsed) {
             debugPrint(
-                'Joined channel: ${connection.channelId}, uid: ${connection.localUid}');
+                'Joined channel: ${connection.channelId}, uid: ${connection
+                    .localUid}, elapsed: $elapsed');
           },
           onUserJoined: (RtcConnection connection, int remoteUid, int elapsed) {
-            debugPrint(
-                'Remote user joineddddd: $remoteUid, localId === ${connection.localUid}');
+            debugPrint('Remote user joined: $remoteUid, channel: ${connection
+                .channelId}, localUid: ${connection.localUid}');
             _remoteUserJoinedController.add(true);
             if (callType == CallType.video) {
               updateRemoteVideoStream(remoteUid, true);
             }
-
             _startCallDurationTimer();
           },
           onUserOffline: (RtcConnection connection, int remoteUid,
@@ -128,15 +140,13 @@ class AgoraService {
             if (callType == CallType.video) {
               updateRemoteVideoStream(remoteUid, false);
             }
-
             _stopCallDurationTimer();
-            if (currentUserId == null ||
-                receiverUserId == null ||
+            if (currentUserId == null || receiverUserId == null ||
                 currentChannel == null) {
               debugPrint('Error: Missing required fields for call history');
               return;
             }
-            print("CALL ENDED");
+            debugPrint('Saving call history: ended');
             _callHistoryService.saveCallHistory(
               callerName: "Test",
               callerId: currentUserId!,
@@ -153,66 +163,64 @@ class AgoraService {
           onAudioMixingFinished: () {
             debugPrint('Audio mixing finished');
           },
-          onRemoteVideoStateChanged: (RtcConnection connection,
-              int remoteUid,
-              RemoteVideoState state,
-              RemoteVideoStateReason reason,
+          onRemoteVideoStateChanged: (RtcConnection connection, int remoteUid,
+              RemoteVideoState state, RemoteVideoStateReason reason,
               int elapsed) {
-            debugPrint('Remote video state changed: $remoteUid, state: $state');
-            bool isVideoOn =
-                state == RemoteVideoState.remoteVideoStateDecoding ||
-                    state == RemoteVideoState.remoteVideoStateStarting;
-
-            print("isVideoOn  === $isVideoOn");
-            // _remoteUserJoinedController.add(isVideoOn);
-            updateRemoteVideoStream(remoteUid, isVideoOn);
-            // _remoteVideoStreamController.add({remoteUid: isVideoOn});
+            if (callType == CallType.video) {
+              debugPrint(
+                  'Remote video state changed: $remoteUid, state: $state, reason: $reason');
+              bool isVideoOn = state ==
+                  RemoteVideoState.remoteVideoStateDecoding ||
+                  state == RemoteVideoState.remoteVideoStateStarting;
+              updateRemoteVideoStream(remoteUid, isVideoOn);
+            }
           },
         ),
       );
 
+// Enable audio for all call types
       await _engine!.enableAudio();
+      debugPrint('Audio enabled for $callType');
+// Enable video only for video calls
       if (callType == CallType.video) {
-        print("PREVIEW IMAGE");
         await _engine!.enableVideo();
         await _engine!.startPreview();
         _isVideoEnabled = true;
+        debugPrint('Video enabled and preview started');
       }
       _engine!.setClientRole(role: ClientRoleType.clientRoleBroadcaster);
-      await _engine!
-          .setParameters('{"che.audio.allow.background.playing":true}');
-      debugPrint("Init Agora Successfully for $callType");
+// Ensure audio playback and background playing
+      await _engine!.setParameters(
+          '{"che.audio.allow.background.playing":true}');
+      await _engine!.setParameters('{"che.audio.enable.local.playback":true}');
+      debugPrint('Agora initialized successfully for $callType');
     } catch (e) {
       debugPrint('Failed to initialize Agora engine: $e');
       throw Exception('Failed to initialize Agora engine: $e');
     }
   }
 
-  Future<void> joinCall(
-      String channelName,
+  Future<void> joinCall(String channelName,
       String userId,
       CallType callType, {
         String? token,
+        bool isCaller = false,
+        String? receiverId,
       }) async {
-    if (_engine == null) {
+    if (_engine == null || _isVideoEnabled != (callType == CallType.video)) {
       await initialize(callType);
     }
 
     currentChannel = channelName;
     currentUserId = userId;
+    receiverUserId = receiverId;
     _isCaller = isCaller;
     final uid = generateUid(userId);
 
-    print("uid ==== ${uid}");
-    print("channelName ==== ${channelName}");
-
-    // uid ==== 342261
-    // Remote user joineddddd: 51388, localId === 342261
-
-    token = await getRtcToken(
-        channelName: channelName, isPublisher: true, uid: uid);
-
-    print("TOKEN ==== ${token}");
+    debugPrint(
+        'Joining channel: $channelName with UID: $uid, callType: $callType');
+    token ??=
+    await getRtcToken(channelName: channelName, isPublisher: true, uid: uid);
 
     try {
       await _engine!.joinChannel(
@@ -228,48 +236,17 @@ class AgoraService {
         ),
       );
 
-      if (callType == CallType.video) {
+      if (callType == CallType.video && !_isVideoEnabled) {
         await _engine!.enableVideo();
         await _engine!.startPreview();
         _isVideoEnabled = true;
+        debugPrint('Video enabled for joinCall');
       }
 
-      debugPrint('Joined channels: $channelName with UID: $uid for $callType');
+      debugPrint('Joined channel: $channelName with UID: $uid for $callType');
     } catch (e) {
       debugPrint('Failed to join channel: $e');
       throw Exception('Failed to join channel: $e');
-    }
-  }
-
-  Future<String> getRtcToken({
-    required String channelName,
-    required int uid,
-    required bool isPublisher,
-    String tokenType = 'uid',
-    int expiry = 100000,
-  }) async {
-    final role = isPublisher ? 'publisher' : 'subscriber';
-    final url = Uri.parse(
-      '$_functionUrl?channelName=$channelName&role=$role&tokenType=$tokenType&uid=$uid&expiry=$expiry',
-    );
-
-    try {
-      final response = await http.get(
-        url,
-        headers: {
-          'x-api-key': _apiKey,
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return data['rtcToken'];
-      } else {
-        final error = jsonDecode(response.body)['error'];
-        throw Exception('Failed to get token: $error');
-      }
-    } catch (e) {
-      throw Exception('Error fetching token: $e');
     }
   }
 
@@ -282,11 +259,13 @@ class AgoraService {
         await _engine!.disableVideo();
       }
       await _engine!.leaveChannel();
+      debugPrint('Left channel successfully');
     } catch (e) {
       debugPrint('Failed to leave channel: $e');
     }
     currentChannel = null;
     currentUserId = null;
+    receiverUserId = null;
     _isVideoEnabled = false;
     _stopCallDurationTimer();
     _remoteUserJoinedController.add(false);
@@ -307,8 +286,12 @@ class AgoraService {
   }
 
   void toggleVideo() {
-    if (_engine == null || !_isVideoEnabled) return;
-    _engine!.enableLocalVideo(!_isVideoEnabled);
+    if (_engine == null || !_isVideoEnabled) {
+      debugPrint('Cannot toggle video: engine is null or video is disabled');
+      return;
+    }
+    _isVideoEnabled = !_isVideoEnabled;
+    _engine!.muteLocalVideoStream(!_isVideoEnabled);
     debugPrint('Video toggled: $_isVideoEnabled');
   }
 
@@ -325,20 +308,22 @@ class AgoraService {
     }
   }
 
-  bool get isMuted => _isMuted;
-
-  bool get isSpeakerOn => _isSpeakerOn;
-
-  bool get isVideoEnabled => _isVideoEnabled;
-
   int generateUid(String userId) {
-    return userId.hashCode.abs() % 1000000; // Ensure positive integer
+    try {
+      return int.parse(userId);
+    } catch (e) {
+      return '${userId}_${DateTime
+          .now()
+          .millisecondsSinceEpoch}'.hashCode.abs() % 1000000;
+    }
   }
 
   Future<String> getAssetFilePath(String assetPath) async {
     try {
       final tempDir = await getTemporaryDirectory();
-      final file = File('${tempDir.path}/${assetPath.split('/').last}');
+      final file = File('${tempDir.path}/${assetPath
+          .split('/')
+          .last}');
       if (!await file.exists()) {
         final data = await rootBundle.load(assetPath);
         final bytes = data.buffer.asUint8List();
@@ -396,6 +381,7 @@ class AgoraService {
   void _stopCallDurationTimer() {
     _durationTimer?.cancel();
     _durationTimer = null;
+    _callDuration = Duration.zero;
     _callDurationController.add(Duration.zero);
   }
 
@@ -417,7 +403,40 @@ class AgoraService {
     _remoteVideoStreamController.close();
     currentChannel = null;
     currentUserId = null;
+    receiverUserId = null;
     _isVideoEnabled = false;
     debugPrint('AgoraService disposed');
+  }
+
+  Future<String> getRtcToken({
+    required String channelName,
+    required int uid,
+    required bool isPublisher,
+    String tokenType = 'uid',
+    int expiry = 100000,
+  }) async {
+    final role = isPublisher ? 'publisher' : 'subscriber';
+    final url = Uri.parse(
+      '$_functionUrl?channelName=$channelName&role=$role&tokenType=$tokenType&uid=$uid&expiry=$expiry',
+    );
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'x-api-key': _apiKey,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['rtcToken'];
+      } else {
+        final error = jsonDecode(response.body)['error'];
+        throw Exception('Failed to get token: $error');
+      }
+    } catch (e) {
+      throw Exception('Error fetching token: $e');
+    }
   }
 }

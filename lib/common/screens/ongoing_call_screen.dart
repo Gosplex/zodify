@@ -25,17 +25,22 @@ class OngoingCallScreen extends StatefulWidget {
 }
 
 class _OngoingCallScreenState extends State<OngoingCallScreen> {
-  final AgoraService _agoraService = AgoraService(); // Singleton instance
+  final AgoraService _agoraService = AgoraService();
   final UserService _userService = UserService();
   String _receiverName = 'Astrologer';
   String _receiverImage = '';
   String _callDuration = '00:00';
   bool _isCallJoined = false;
+  bool _remoteUserJoined = false;
 
   @override
   void initState() {
     super.initState();
     _initialize();
+    _setupListeners();
+  }
+
+  void _setupListeners() {
     _agoraService.callDuration.listen((duration) {
       if (mounted) {
         setState(() {
@@ -45,9 +50,19 @@ class _OngoingCallScreenState extends State<OngoingCallScreen> {
         });
       }
     });
+
     _agoraService.remoteUserJoined.listen((joined) {
-      if (!joined && mounted) {
-        Navigator.pop(context);
+      debugPrint('remoteUserJoined event: $joined');
+      if (mounted) {
+        setState(() {
+          _remoteUserJoined = joined;
+          debugPrint('Updated _remoteUserJoined: $_remoteUserJoined');
+        });
+        if (!joined && _isCallJoined) {
+          debugPrint('Remote user left, ending call');
+          _agoraService.leaveCall();
+          Navigator.pop(context);
+        }
       }
     });
   }
@@ -63,13 +78,21 @@ class _OngoingCallScreenState extends State<OngoingCallScreen> {
         });
       }
 
-      // Check if already joined (e.g., from NotificationService)
+      // Check initial remote user state
+      if (_agoraService.isRemoteUserJoined) {
+        setState(() {
+          _remoteUserJoined = true;
+        });
+      }
+
+      // Join call if not already joined
       if (_agoraService.currentChannel != widget.channelName) {
         await _agoraService.initialize(CallType.voice);
         await _agoraService.joinCall(
           widget.channelName,
-          widget.receiverId,
+          widget.receiverId, // currentUserId (User B's ID)
           CallType.voice,
+          receiverId: widget.receiverId, // receiverId (User A's ID for call history)
         );
         setState(() {
           _isCallJoined = true;
@@ -81,8 +104,8 @@ class _OngoingCallScreenState extends State<OngoingCallScreen> {
         });
         debugPrint('Already joined Agora call');
       }
-    } catch (e) {
-      debugPrint('Error initializing call: $e');
+    } catch (e, stackTrace) {
+      debugPrint('Error initializing call: $e\nStackTrace: $stackTrace');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -90,9 +113,9 @@ class _OngoingCallScreenState extends State<OngoingCallScreen> {
             backgroundColor: Colors.red,
           ),
         );
-        // Future.delayed(const Duration(seconds: 2), () {
-        //   if (mounted) Navigator.pop(context);
-        // });
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) Navigator.pop(context);
+        });
       }
     }
   }
@@ -102,7 +125,6 @@ class _OngoingCallScreenState extends State<OngoingCallScreen> {
     if (_isCallJoined) {
       _agoraService.leaveCall();
     }
-    // Do not dispose AgoraService singleton here to avoid affecting other screens
     super.dispose();
   }
 
@@ -127,10 +149,10 @@ class _OngoingCallScreenState extends State<OngoingCallScreen> {
       child: ClipOval(
         child: _receiverImage.isNotEmpty
             ? Image.network(
-                _receiverImage,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _buildDefaultAvatar(),
-              )
+          _receiverImage,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _buildDefaultAvatar(),
+        )
             : _buildDefaultAvatar(),
       ),
     );
@@ -223,7 +245,7 @@ class _OngoingCallScreenState extends State<OngoingCallScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Ongoing Call',
+                          _remoteUserJoined ? 'Connected' : 'Waiting for user...',
                           style: AppTextStyles.bodyMedium(
                             color: Colors.white70,
                             fontSize: 16,
@@ -295,12 +317,11 @@ class _OngoingCallScreenState extends State<OngoingCallScreen> {
                             ));
                             // Navigator.pop(context);
                           } else {
-                            Navigator.of(context)
-                                .pushReplacement(MaterialPageRoute(
-                              builder: (context) {
-                                return UserDashboardScreen();
-                              },
-                            ));
+                            Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(
+                                builder: (context) => UserDashboardScreen(),
+                              ),
+                            );
                           }
                         },
                         child: const Icon(

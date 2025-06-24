@@ -6,8 +6,6 @@ import 'package:astrology_app/main.dart';
 import 'package:astrology_app/services/agora_services.dart';
 import 'package:astrology_app/services/notification_service.dart';
 import 'package:astrology_app/services/user_service.dart';
-
-import '../../services/call_history_service.dart';
 import 'ongoing_video_calling_screen.dart';
 
 class VideoCallingScreen extends StatefulWidget {
@@ -30,8 +28,6 @@ class _VideoCallingScreenState extends State<VideoCallingScreen> {
   final AgoraService _agoraService = AgoraService();
   final UserService _userService = UserService();
   final NotificationService _notificationService = NotificationService();
-  final CallHistoryService _callHistoryService = CallHistoryService();
-
   String _receiverName = 'Astrologer';
   CallStatus _callStatus = CallStatus.connecting;
   String _statusText = 'Ringing...';
@@ -43,10 +39,8 @@ class _VideoCallingScreenState extends State<VideoCallingScreen> {
   @override
   void initState() {
     super.initState();
-    print("CheckData::::${widget.channelName}");
-    print("CheckData::::${widget.receiverId}");
-    print("CheckData::::${widget.receiverImageUrl}");
-    print("CheckData::::${widget.key}");
+    debugPrint(
+        'VideoCallingScreen init: channel=${widget.channelName}, receiverId=${widget.receiverId}');
     _initializeCall();
     _startTimer();
     _timeoutTimer = Timer(const Duration(seconds: 30), () {
@@ -63,6 +57,7 @@ class _VideoCallingScreenState extends State<VideoCallingScreen> {
     if (_callStatus != CallStatus.connected) {
       _cleanupResources();
     }
+    debugPrint('VideoCallingScreen disposed');
     super.dispose();
   }
 
@@ -92,9 +87,6 @@ class _VideoCallingScreenState extends State<VideoCallingScreen> {
       await _agoraService.initialize(CallType.video);
       setState(() => _isInitialized = true);
 
-
-
-      print("SendingCallNotification:::${receiver?.fcmToken}");
       if (receiver?.fcmToken != null) {
         await _notificationService.sendCallNotification(
           receiverId: widget.receiverId,
@@ -106,14 +98,11 @@ class _VideoCallingScreenState extends State<VideoCallingScreen> {
           callerId: userStore.user!.id!,
           callType: CallType.video,
         );
-        debugPrint("Before remoteUserJoined");
-
+        debugPrint('Sent call notification to receiver: ${widget.receiverId}');
       }
 
-      debugPrint("Before remoteUserJoined");
-
       _agoraService.remoteUserJoined.listen((joined) {
-        debugPrint("Remote user joined: $joined");
+        debugPrint('Remote user joined: $joined');
         if (joined && mounted) {
           setState(() {
             _callStatus = CallStatus.connected;
@@ -138,7 +127,7 @@ class _VideoCallingScreenState extends State<VideoCallingScreen> {
           });
         }
       }, onError: (error) {
-        debugPrint("Error: $error");
+        debugPrint('remoteUserJoined error: $error');
         _handleError(error.toString());
       });
 
@@ -146,9 +135,12 @@ class _VideoCallingScreenState extends State<VideoCallingScreen> {
         widget.channelName,
         userStore.user!.id!,
         CallType.video,
+        isCaller: true,
+        receiverId: widget.receiverId,
       );
+      debugPrint('Joined call as caller: channel=${widget.channelName}');
     } catch (e, stackTrace) {
-      debugPrint("Initialize call error: $e\nStackTrace: $stackTrace");
+      debugPrint('Initialize call error: $e\nStackTrace: $stackTrace');
       _handleError(e.toString());
     }
   }
@@ -157,19 +149,9 @@ class _VideoCallingScreenState extends State<VideoCallingScreen> {
     if (mounted) {
       setState(() {
         _callStatus = CallStatus.failed;
-        _statusText = 'Call failed';
+        _statusText = 'Call failed: $error';
       });
-      _callHistoryService.saveCallHistory(
-        callerId: userStore.user!.id!,
-        callerName: userStore.user!.name!,
-        receiverId: widget.receiverId,
-        channelName: widget.channelName,
-        callType: 'video',
-        status: 'failed',
-        durationSeconds: _callDuration.inSeconds,
-      );
       Future.delayed(const Duration(seconds: 2), () {
-
         if (mounted) Navigator.pop(context);
       });
     }
@@ -178,6 +160,7 @@ class _VideoCallingScreenState extends State<VideoCallingScreen> {
   Future<void> _cleanupResources() async {
     try {
       await _agoraService.leaveCall();
+      debugPrint('Cleaned up resources');
     } catch (e) {
       debugPrint('Error cleaning resources: $e');
     }
@@ -192,15 +175,6 @@ class _VideoCallingScreenState extends State<VideoCallingScreen> {
       });
     }
     await _cleanupResources();
-    await _callHistoryService.saveCallHistory(
-      callerId: userStore.user!.id!,
-      callerName: userStore.user!.name!,
-      receiverId: widget.receiverId,
-      channelName: widget.channelName,
-      callType: 'video',
-      status: 'ended',
-      durationSeconds: _callDuration.inSeconds,
-    );
     if (mounted) {
       debugPrint('Navigating back...');
       Navigator.pop(context);
@@ -220,7 +194,7 @@ class _VideoCallingScreenState extends State<VideoCallingScreen> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Local Video Preview (Full Screen)
+// Local Video Preview (Full Screen)
           if (_isInitialized)
             AgoraVideoView(
               controller: VideoViewController(
@@ -236,7 +210,7 @@ class _VideoCallingScreenState extends State<VideoCallingScreen> {
               ),
             ),
 
-          // Semi-transparent Overlay
+// Semi-transparent Overlay
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -251,11 +225,11 @@ class _VideoCallingScreenState extends State<VideoCallingScreen> {
             ),
           ),
 
-          // Call Information and Controls
+// Call Information and Controls
           SafeArea(
             child: Column(
               children: [
-                // Header
+// Header
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Row(
@@ -290,7 +264,7 @@ class _VideoCallingScreenState extends State<VideoCallingScreen> {
                   ),
                 ),
 
-                // Call Info
+// Call Info
                 Expanded(
                   child: Center(
                     child: Column(
@@ -319,7 +293,7 @@ class _VideoCallingScreenState extends State<VideoCallingScreen> {
                   ),
                 ),
 
-                // Control Bar
+// Control Bar
                 Padding(
                   padding: const EdgeInsets.only(bottom: 40),
                   child: Row(
@@ -358,7 +332,7 @@ class _VideoCallingScreenState extends State<VideoCallingScreen> {
             ),
           ),
 
-          // Loading Indicator
+// Loading Indicator
           if (_callStatus == CallStatus.connecting && !_isInitialized)
             const Center(
               child: CircularProgressIndicator(color: Colors.white),

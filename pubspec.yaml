@@ -27,7 +27,7 @@ dependencies:
 
 
 # VIDEO PLAYER
-  video_player: ^2.9.5
+  video_player: 2.10.0
 # AUDIO
   flutter_sound: ^9.28.0
   audioplayers: ^6.4.0
@@ -80,6 +80,7 @@ dev_dependencies:
 
 dependency_overrides:
   package_info_plus: ^4.1.0
+  video_player_android: ^2.8.7
 
 
 flutter:
@@ -96,7 +97,7 @@ flutter:
      - assets/animations/call_denied.json
      - assets/audio/phone_call_beep.mp3
      - assets/audio/notification.wav
-     - assets/zodify-6ff17-firebase-adminsdk-fbsvc-5ec7753e9b.json
+     - assets/zodify-6ff17-firebase-adminsdk-fbsvc-93837edb1e.json
 #     - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
