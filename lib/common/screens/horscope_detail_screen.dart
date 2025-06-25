@@ -3,9 +3,15 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../utils/colors.dart';
 import '../utils/common.dart';
 
 class HoroscopeTabs extends StatefulWidget {
+  int ayanmasa;
+  String dob;
+  String location;
+  HoroscopeTabs({super.key, required this.ayanmasa,required this.dob,required this.location});
+
   @override
   _HoroscopeTabsState createState() => _HoroscopeTabsState();
 }
@@ -18,13 +24,15 @@ class _HoroscopeTabsState extends State<HoroscopeTabs> with SingleTickerProvider
     Tab(text: 'Basic Kundli'),
     Tab(text: 'Lagna'),
     Tab(text: 'Navamsa'),
-    Tab(text: 'Transit'),
+
     Tab(text: 'Dasha'),
     Tab(text: 'Ashtkvarga'),
     Tab(text: 'Planet'),
     Tab(text: 'Chart'),
-    Tab(text: 'KP'),
+
     Tab(text: 'Manglik'),
+
+    Tab(text: 'Sarvashtak'),
   ];
 
   @override
@@ -67,15 +75,16 @@ class _HoroscopeTabsState extends State<HoroscopeTabs> with SingleTickerProvider
       body: TabBarView(
           controller: _tc, children: [
         for(int i=0;i<tabs.length;i++)
-        DailyHoroscopePage(key: Key(i.toString()),text:tabs[i].text),
+        DailyHoroscopePage(key: Key(i.toString()),text:tabs[i].text,location:widget.location,dob:widget.dob,ayanmasa:widget.ayanmasa,),
       ]),
     );
   }
 }
 
 class DailyHoroscopePage extends StatefulWidget {
-  String? text;
-  DailyHoroscopePage({super.key, this.text});
+  String? text,location,dob;
+  int ayanmasa;
+  DailyHoroscopePage({super.key, this.text, required this.location,required this.ayanmasa,this.dob});
 
   @override
   _DailyHoroscopePageState createState() => _DailyHoroscopePageState();
@@ -85,6 +94,8 @@ class DailyHoroscopePage extends StatefulWidget {
 class _DailyHoroscopePageState extends State<DailyHoroscopePage> {
   String textResponse='';
   String? imageResponse;
+  String selectedChartStyle="north-indian";
+  var chartStyle=["north-indian" ,"south-indian", "east-indian"];
 
   @override
   Widget build(BuildContext c) {
@@ -94,6 +105,48 @@ class _DailyHoroscopePageState extends State<DailyHoroscopePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (widget.text == "Lagna" ||
+                widget.text == "Navamsa" ||
+                widget.text == "Ashtkvarga" ||
+                widget.text == "Chart")
+            Padding(
+              padding:EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text("Chart-Style",style: TextStyle(color: Colors.black),),
+            ),
+            if (widget.text == "Lagna" ||
+                widget.text == "Navamsa" ||
+                widget.text == "Ashtkvarga" ||
+                widget.text == "Chart")
+            Container(
+              decoration: BoxDecoration(
+                  color: AppColors.primaryDark.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(12)
+              ),
+              padding: EdgeInsets.symmetric(horizontal: 8),
+              margin: EdgeInsets.all(16),
+              child: DropdownButton<String>(
+                value: selectedChartStyle,
+                underline: SizedBox(),
+                borderRadius: BorderRadius.circular(12),
+                dropdownColor: AppColors.primaryDark,
+                isExpanded: true,
+                style: TextStyle(color: Colors.white),
+                onChanged: (String? newValue) {
+                  if (newValue != null) {
+                    setState(() {
+                      selectedChartStyle = newValue;
+                      init();
+                    });
+                  }
+                },
+                items: chartStyle.map((option) {
+                  return DropdownMenuItem<String>(
+                    value: option,
+                    child: Text(option,style: TextStyle(color: Colors.white),),
+                  );
+                }).toList(),
+              ),
+            ),
             Text(textResponse??''),
             if(imageResponse!=null)
               SvgPicture.string(
@@ -115,19 +168,17 @@ class _DailyHoroscopePageState extends State<DailyHoroscopePage> {
   void init() async{
     print("CheckInitCall::${widget.text}");
     if(widget.text=="Basic Kundli"){
-      var b=await KundliApiService.getKundliDetails(dateTime: "2004-02-12T15:19:21%2B05:30", location: '31.5143178,31.5143178',ayanamsa: 1);
+      var b=await KundliApiService.getKundliDetails(dateTime: "${widget.dob}", location: '${widget.location}',ayanamsa: widget.ayanmasa);
       setState(() {
         textResponse=generateKundliText(b);
       });
     }else if(widget.text=="Lagna"){
-      print("CheckInitCall:115");
-      // north-indian south-indian east-indian
       var b=await KundliApiService.getApiCall("chart",{
-        "ayanamsa":"1",
-        "coordinates":"31.5143178,31.5143178",
-        "datetime":"1997-09-04T03:30:00+05:30",
+        "ayanamsa":"${widget.ayanmasa}",
+        "coordinates":"${widget.location}",
+        "datetime":"${widget.dob.toString().replaceAll("%2B", "+")}",
         "chart_type":"lagna",
-        "chart_style":"north-indian",
+        "chart_style":"${selectedChartStyle}",
         "format":"svg",
         "la":"en",
       });
@@ -136,26 +187,11 @@ class _DailyHoroscopePageState extends State<DailyHoroscopePage> {
       });
     }else if(widget.text=="Navamsa"){
       var b=await KundliApiService.getApiCall("chart",{
-        "ayanamsa":"1",
-        "coordinates":"31.5143178,31.5143178",
-        "datetime":"1997-09-04T03:30:00+05:30",
+        "ayanamsa":"${widget.ayanmasa}",
+        "coordinates":"${widget.location}",
+        "datetime":"${widget.dob.toString().replaceAll("%2B", "+")}",
         "chart_type":"navamsa",
-        "chart_style":"north-indian",
-        "format":"svg",
-        "la":"en",
-      });
-      setState(() {
-        imageResponse=b;
-      });
-    }else if(widget.text=="Transit"){
-    // https://api.prokerala.com/v2/astrology/transit-chart
-      var b=await KundliApiService.getApiCall("transit-chart",{
-        "ayanamsa":"1",
-        "current_coordinates":"31.5143178,31.5143178",
-        "transit_datetime":"1997-09-04T03:30:00+05:30",
-        "house_system":"placidus",
-        "chart_type":"navamsa",
-        "chart_style":"north-indian",
+        "chart_style":"${selectedChartStyle}",
         "format":"svg",
         "la":"en",
       });
@@ -164,12 +200,11 @@ class _DailyHoroscopePageState extends State<DailyHoroscopePage> {
       });
     }else if(widget.text=="Dasha"){
       var b=await KundliApiService.getApiCall("dasha-periods",{
-        "ayanamsa":"1",
-        "coordinates":"31.5143178,31.5143178",
-        "datetime":"1997-09-04T03:30:00+05:30",
+        "ayanamsa":"${widget.ayanmasa}",
+        "coordinates":"${widget.location}",
+        "datetime":"${widget.dob.toString().replaceAll("%2B", "+")}",
         "la":"en",
       });
-      // b=jsonDecode(b);
       print('CheckDataJsonmn:::$b');
       setState(() {
         for(int k=0;k<b['dasha_periods'].length;k++)
@@ -178,11 +213,11 @@ class _DailyHoroscopePageState extends State<DailyHoroscopePage> {
       });
     }else if(widget.text=="Ashtkvarga"){
       var b=await KundliApiService.getApiCall("ashtakavarga-chart",{
-        "ayanamsa":"1",
-        "coordinates":"31.5143178,31.5143178",
-        "datetime":"1997-09-04T03:30:00+05:30",
+        "ayanamsa":"${widget.ayanmasa}",
+        "coordinates":"${widget.location}",
+        "datetime":"${widget.dob.toString().replaceAll("%2B", "+")}",
         "planet":"1",
-        "chart_style":"north-indian",
+        "chart_style":"${selectedChartStyle}",
         "la":"en",
         "type":"prastara",
       });
@@ -192,9 +227,9 @@ class _DailyHoroscopePageState extends State<DailyHoroscopePage> {
 
     }else if(widget.text=="Planet"){
       var b=await KundliApiService.getApiCall("planet-position",{
-        "coordinates":"31.5143178,31.5143178",
-        "ayanamsa":"1",
-        "datetime":"1997-09-04T03:30:00+05:30",
+        "coordinates":"${widget.location}",
+        "ayanamsa":"${widget.ayanmasa}",
+        "datetime":"${widget.dob.toString().replaceAll("%2B", "+")}",
       });
       setState(() {
         for(int k=0;k<b['planet_position'].length;k++)
@@ -202,30 +237,62 @@ class _DailyHoroscopePageState extends State<DailyHoroscopePage> {
       });
     }else if(widget.text=="Chart"){
       var b=await KundliApiService.getApiCall('chart',{
-        "coordinates":"31.5143178,31.5143178",
-        "ayanamsa":"1",
+        "coordinates":"${widget.location}",
+        "ayanamsa":"${widget.ayanmasa}",
         "chart_type":"rasi",
-        "chart_style":"north-indian",
+        "chart_style":"${selectedChartStyle}",
         "format":"svg",
-        "datetime":"1997-09-04T03:30:00+05:30",
+        "datetime":"${widget.dob.toString().replaceAll("%2B", "+")}",
       });
       setState(() {
         imageResponse=b;
       });
-    }else if(widget.text=="KP"){
-
     }else if(widget.text=="Manglik"){
       var b=await KundliApiService.getApiCall("mangal-dosha",{
-        "ayanamsa":"1",
-        "coordinates":"31.5143178,31.5143178",
-        "datetime":"1997-09-04T03:30:00+05:30",
+        "ayanamsa":"${widget.ayanmasa}",
+        "coordinates":"${widget.location}",
+        "datetime":"${widget.dob.toString().replaceAll("%2B", "+")}",
         "la":"en",
       });
       setState(() {
           textResponse=b['description'];
+      });
+    }else if(widget.text=="Sarvashtak"){
+      var b=await KundliApiService.getApiCall("sarvashtakavarga",{
+        "ayanamsa":"${widget.ayanmasa}",
+        "coordinates":"${widget.location}",
+        "datetime":"${widget.dob.toString().replaceAll("%2B", "+")}",
+        "la":"en",
+      });
+      setState(() {
+        final buffer = StringBuffer();
+        final houses = b['sarvashtakavarga']?['prastara']?['houses'] ?? [];
+
+        for (var houseData in houses) {
+          final house = houseData['house'];
+          final rasi = houseData['rasi'];
+          final planets = houseData['planets'] ?? [];
+          final score = houseData['score'];
+
+          buffer.writeln('🏠 House: ${house['name']} (${house['number']})');
+          buffer.writeln('🔯 Rasi: ${rasi['name']} (Lord: ${rasi['lord']['name']})');
+          buffer.writeln('🪐 Planet Scores:');
+
+          for (var planetData in planets) {
+            final planet = planetData['planet'];
+            buffer.writeln('   - ${planet['name']} (${planet['vedic_name']}): ${planetData['score']}');
+          }
+
+          buffer.writeln('📊 Total Score: $score');
+          buffer.writeln('------------------------');
+        }
+
+        textResponse=buffer.toString();
         // textResponse=generateKundliText(b);
       });
     }
+    // Tab(text: 'Vimshottari'),
+    // Tab(text: 'Jaimini'),
   }
 
   String generateKundliText(Map<String, dynamic> data) {

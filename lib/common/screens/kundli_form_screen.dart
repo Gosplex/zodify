@@ -8,6 +8,7 @@ import '../utils/app_text_styles.dart';
 import '../utils/colors.dart';
 import '../utils/common.dart';
 import '../utils/images.dart';
+import 'horscope_detail_screen.dart';
 import 'kundli_result_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -194,21 +195,34 @@ class _KundliFormScreenState extends State<KundliFormScreen> {
             key: _formKey,
             child: ListView(
               children: [
-                DropdownButton<int>(
-                  value: selectedAyanamsa,
-                  onChanged: (int? newValue) {
-                    if (newValue != null) {
-                      setState(() {
-                        selectedAyanamsa = newValue;
-                      });
-                    }
-                  },
-                  items: ayanamsaOptions.map((option) {
-                    return DropdownMenuItem<int>(
-                      value: option['value'],
-                      child: Text(option['label']),
-                    );
-                  }).toList(),
+                Container(
+                  decoration: BoxDecoration(
+                    // color: Colors.white,
+                    color: AppColors.primaryDark.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(12)
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 8),
+                  child: DropdownButton<int>(
+                    value: selectedAyanamsa,
+                    underline: SizedBox(),
+                    borderRadius: BorderRadius.circular(12),
+                    dropdownColor: AppColors.primaryDark,
+                    isExpanded: true,
+                    style: TextStyle(color: Colors.white),
+                    onChanged: (int? newValue) {
+                      if (newValue != null) {
+                        setState(() {
+                          selectedAyanamsa = newValue;
+                        });
+                      }
+                    },
+                    items: ayanamsaOptions.map((option) {
+                      return DropdownMenuItem<int>(
+                        value: option['value'],
+                        child: Text(option['label'],style: TextStyle(color: Colors.white),),
+                      );
+                    }).toList(),
+                  ),
                 ),
                 SizedBox(height: 16),
                 _buildTextFormField(
@@ -259,7 +273,7 @@ class _KundliFormScreenState extends State<KundliFormScreen> {
                     ),
                     if(cityList.isNotEmpty && _birthPlaceLocation==null)
                       Container(
-                        margin: EdgeInsets.symmetric(horizontal: 8,vertical: 8),
+                        padding: EdgeInsets.symmetric(vertical: 8,horizontal: 8),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
@@ -299,7 +313,17 @@ class _KundliFormScreenState extends State<KundliFormScreen> {
                 semanticsLabel: 'Dart Logo',
               ),
                 SizedBox(height: 20),
-                ElevatedButton(onPressed: submitForm, child: Text("Generate Kundli")),
+                ElevatedButton(onPressed: (){
+                  String lat=_birthPlaceLocation!.split(",")[0].toString().substring(0,10);
+                  String lng=_birthPlaceLocation!.split(",")[1].toString().substring(0,10);
+                  String dobTime="${dobController.text}T${tobController.text}:00%2B05:30";
+                  String location="$lat,$lng";
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => HoroscopeTabs(
+                    ayanmasa:selectedAyanamsa,
+                    dob:dobTime,
+                    location:location
+                  ),));
+                }, child: Text("Generate Kundli")),
               ],
             ),
           ),
@@ -332,7 +356,7 @@ class _KundliFormScreenState extends State<KundliFormScreen> {
     if (picked != null) {
       setState(() {
         time=picked;
-        dobController.text = DateFormat('MMM dd, yyyy').format(picked);
+        dobController.text = DateFormat('yyyy-MM-dd').format(picked);
       });
     }
   }
